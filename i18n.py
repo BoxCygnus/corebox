@@ -3,24 +3,27 @@
 TRANSLATIONS = {
     "vi": {
         # App brand & header
-        "app_title": "COREBOX",
-        "app_subtitle": "Your project management, minus the manual hassle.",
-        "app_description": "Data storage, automated inspection, and other supportive tools.",
-        "app_footer": "Developed by Box",
+        "app_title": "Corebox",
+        "app_subtitle": "Quản lý dự án của bạn, loại bỏ hoàn toàn phiền toái thủ công.",
+        "app_description": "Lưu trữ dữ liệu, kiểm tra tự động và các công cụ hỗ trợ.",
+        "app_footer": "Phát triển bởi Box",
         
         # Navigation
-        "nav_home": "📦 Corebox",
+        "nav_home": "Corebox",
         "nav_tools": "Tools",
         "nav_admin": "Administrator",
-        "nav_repo": "Kho Dữ Liệu",
+        "nav_language": "Ngôn ngữ",
+        "nav_search": "Tìm kiếm...",
+        "nav_repo": "Kho dữ liệu",
         "nav_inspection": "Kiểm tra mã công việc",
         "nav_users": "Quản lý phân quyền",
         "nav_logout": "Đăng xuất",
         "nav_login": "Đăng nhập Google",
-        "nav_guest": "Khách (Guest)",
+        "nav_guest": "Khách",
         "nav_admin_badge": "Quản trị viên",
         "nav_user_badge": "Người dùng",
         "nav_pending_badge": "Chờ duyệt",
+        "explore_tools": "Khám phá công cụ →",
         
         # Auth & Approval
         "pending_title": "Tài khoản đang chờ phê duyệt",
@@ -123,15 +126,17 @@ TRANSLATIONS = {
     
     "en": {
         # App brand & header
-        "app_title": "COREBOX",
+        "app_title": "Corebox",
         "app_subtitle": "Your project management, minus the manual hassle.",
         "app_description": "Data storage, automated inspection, and other supportive tools.",
         "app_footer": "Developed by Box",
         
         # Navigation
-        "nav_home": "📦 Corebox",
+        "nav_home": "Corebox",
         "nav_tools": "Tools",
         "nav_admin": "Administrator",
+        "nav_language": "Language",
+        "nav_search": "Search...",
         "nav_repo": "Data Repository",
         "nav_inspection": "Work Code Inspection",
         "nav_users": "User Management",
@@ -141,6 +146,7 @@ TRANSLATIONS = {
         "nav_admin_badge": "Administrator",
         "nav_user_badge": "User",
         "nav_pending_badge": "Pending Approval",
+        "explore_tools": "Explore the tools →",
         
         # Auth & Approval
         "pending_title": "Account Pending Approval",

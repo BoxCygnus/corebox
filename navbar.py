@@ -6,12 +6,12 @@ from i18n import t
 
 def render_top_navbar(lang: str):
     """
-    Renders the minimalist Maple-inspired Top Navigation Bar:
-    - Bold and larger '📦 Corebox' on the top-left
-    - 'Tools ⌵' and 'Administrator ⌵' (NO icons in front, border-free, same font & size)
-    - Search bar in center
-    - Right: Current date/time, Language switcher ('🌐 English ⌵' / '🌐 Tiếng Việt ⌵'),
-             separator '|', and Google Account Name + Google Avatar.
+    Renders the custom pure hover navbar:
+    - Bold and larger 'Corebox' on the left
+    - 'Tools ⌵' and 'Administrator ⌵' (No icons, NO white borders, hover dropdown, left-aligned children)
+    - 'Ngôn ngữ ⌵' / 'Language ⌵' (Hover dropdown with Tiếng Việt / English)
+    - Google account name + Google Avatar (Hover dropdown with account info & switch)
+    - Real-time formatted date & time
     """
     current_user = get_current_user()
     current_email = get_current_user_email()
@@ -19,154 +19,94 @@ def render_top_navbar(lang: str):
 
     now_str = datetime.datetime.now().strftime("%a %b %d %H:%M:%S")
 
-    # Format user display name & avatar initial
+    # Format user display name & initial
     if current_user:
         raw_name = current_user.get("full_name") or current_email.split("@")[0]
-        # Clean display name (take first word or short name)
         user_display_name = raw_name
         avatar_initial = (user_display_name[0] if user_display_name else "U").upper()
         role = current_user.get("role", "user")
         status = current_user.get("status", "pending")
     else:
-        user_display_name = "Guest"
+        user_display_name = t("nav_guest", lang)
         avatar_initial = "G"
         role = "guest"
         status = "none"
 
-    # Top Navbar Container
-    with st.container():
-        col_left, col_center, col_right = st.columns([4.2, 2.5, 4.3], vertical_alignment="center")
+    # Admin sub-item link (or locked alert)
+    if user_is_admin:
+        admin_link_html = f'<a href="?page=users" target="_self" class="nav-sub-link">👥 {t("nav_users", lang)}</a>'
+    else:
+        admin_link_html = f'<span class="nav-sub-link" style="opacity:0.5; cursor:not-allowed;">🔒 {t("nav_users", lang)} ({t("nav_admin_badge", lang)})</span>'
 
-        # -------------------------------------------------------------
-        # LEFT: 📦 Corebox (Bold & Larger) -> Tools ⌵ -> Administrator ⌵
-        # -------------------------------------------------------------
-        with col_left:
-            nl1, nl2, nl3 = st.columns([1.6, 1.2, 1.5], vertical_alignment="center")
+    # Current language indicator
+    current_lang_display = "Tiếng Việt" if lang == "vi" else "English"
 
-            # 1. 📦 Corebox (Home - In đậm và to hơn)
-            with nl1:
-                st.markdown('<div class="nav-brand-btn">', unsafe_allow_html=True)
-                if st.button("📦 Corebox", key="nav_btn_home"):
-                    st.session_state["current_page"] = "home"
-                    st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
-
-            # 2. Tools ⌵ (Không biểu tượng ở trước, không viền, cùng cỡ chữ)
-            with nl2:
-                st.markdown('<div class="top-navbar-btn">', unsafe_allow_html=True)
-                with st.popover(f"{t('nav_tools', lang)} ⌵", use_container_width=True):
-                    st.markdown(f"**{t('nav_tools', lang)}**")
-                    if st.button(t('nav_repo', lang), key="nav_drop_repo", use_container_width=True):
-                        st.session_state["current_page"] = "repo"
-                        st.rerun()
-                    if st.button(t('nav_inspection', lang), key="nav_drop_inspect", use_container_width=True):
-                        st.session_state["current_page"] = "inspect"
-                        st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
-
-            # 3. Administrator ⌵ (Không biểu tượng ở trước, không viền, cùng cỡ chữ)
-            with nl3:
-                st.markdown('<div class="top-navbar-btn">', unsafe_allow_html=True)
-                with st.popover(f"{t('nav_admin', lang)} ⌵", use_container_width=True):
-                    st.markdown(f"**{t('nav_admin', lang)}**")
-                    if user_is_admin:
-                        if st.button(t('nav_users', lang), key="nav_drop_users", use_container_width=True):
-                            st.session_state["current_page"] = "users"
-                            st.rerun()
-                    else:
-                        st.caption(f"🔒 {t('access_denied', lang, admin_email=config.ADMIN_EMAIL)}")
-                st.markdown('</div>', unsafe_allow_html=True)
-
-        # -------------------------------------------------------------
-        # CENTER: Search Pill (Matching reference image)
-        # -------------------------------------------------------------
-        with col_center:
-            st.markdown(
-                """
-                <div class="nav-search-box">
-                    <span>🔍 Search...</span>
-                    <span class="nav-search-shortcut">⌘ K</span>
+    # Build HTML Navbar
+    navbar_html = f"""
+    <div class="corebox-navbar-container">
+        <div class="nav-bar-row">
+            <!-- LEFT: Corebox (Bold & Large) -> Tools ⌵ -> Administrator ⌵ -->
+            <div class="nav-left-zone">
+                <a href="?page=home" target="_self" class="brand-logo-text">Corebox</a>
+                
+                <!-- Tools Dropdown (Hover to open) -->
+                <div class="nav-dropdown-item">
+                    <span class="nav-dropdown-label">
+                        {t('nav_tools', lang)} <span class="nav-arrow">⌵</span>
+                    </span>
+                    <div class="nav-dropdown-menu">
+                        <a href="?page=repo" target="_self" class="nav-sub-link">📁 {t('nav_repo', lang)}</a>
+                        <a href="?page=inspect" target="_self" class="nav-sub-link">🔍 {t('nav_inspection', lang)}</a>
+                    </div>
                 </div>
-                """,
-                unsafe_allow_html=True
-            )
 
-        # -------------------------------------------------------------
-        # RIGHT: Date/Time -> Language ⌵ -> | -> Google Name + Avatar
-        # -------------------------------------------------------------
-        with col_right:
-            nr_time, nr_lang, nr_user = st.columns([1.8, 1.4, 1.8], vertical_alignment="center")
+                <!-- Administrator Dropdown (Hover to open) -->
+                <div class="nav-dropdown-item">
+                    <span class="nav-dropdown-label">
+                        {t('nav_admin', lang)} <span class="nav-arrow">⌵</span>
+                    </span>
+                    <div class="nav-dropdown-menu">
+                        {admin_link_html}
+                    </div>
+                </div>
+            </div>
 
-            # Date/Time
-            with nr_time:
-                st.markdown(
-                    f"<div style='color:#94a3b8; font-size:0.85rem; white-space:nowrap; text-align:right;'>{now_str}</div>",
-                    unsafe_allow_html=True
-                )
+            <!-- RIGHT: Date/Time -> Language ⌵ -> User Name + Avatar -->
+            <div class="nav-right-zone">
+                <div class="nav-date-time">{now_str}</div>
 
-            # Language Switcher (Không viền, chữ phẳng)
-            with nr_lang:
-                st.markdown('<div class="top-navbar-btn">', unsafe_allow_html=True)
-                current_lang_label = "🌐 Tiếng Việt ⌵" if lang == "vi" else "🌐 English ⌵"
-                with st.popover(current_lang_label, use_container_width=True):
-                    if st.button("🇻🇳 Tiếng Việt", key="set_lang_vi", use_container_width=True):
-                        st.session_state["lang"] = "vi"
-                        st.rerun()
-                    if st.button("🇬🇧 English", key="set_lang_en", use_container_width=True):
-                        st.session_state["lang"] = "en"
-                        st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
+                <!-- Language Switcher Dropdown (Hover to open) -->
+                <div class="nav-dropdown-item">
+                    <span class="nav-dropdown-label">
+                        🌐 {current_lang_display} <span class="nav-arrow">⌵</span>
+                    </span>
+                    <div class="nav-dropdown-menu" style="min-width: 150px;">
+                        <a href="?lang=vi" target="_self" class="nav-sub-link">🇻🇳 Tiếng Việt</a>
+                        <a href="?lang=en" target="_self" class="nav-sub-link">🇬🇧 English</a>
+                    </div>
+                </div>
 
-            # Google Account & Avatar (Google Name + Avatar circle)
-            with nr_user:
-                st.markdown('<div class="top-navbar-btn">', unsafe_allow_html=True)
-                user_button_label = f"{user_display_name} 🟡"
-                with st.popover(user_button_label, use_container_width=True):
-                    if current_user:
-                        st.markdown(f"**{t('logged_in_as', lang, email=current_email)}**")
-                        st.markdown(f"**{t('th_name', lang)}:** {user_display_name}")
-                        st.markdown(f"**{t('th_role', lang)}:** `{role}`")
-                        if status == "active":
-                            st.success(f"**{t('th_status', lang)}:** Active")
-                        elif status == "pending":
-                            st.warning(f"**{t('th_status', lang)}:** Pending Approval")
-                        
-                        st.divider()
-                        st.markdown(f"*{t('switch_account', lang)}:*")
-                        switch_opt = st.selectbox(
-                            "Chọn tài khoản thử nghiệm:",
-                            options=[
-                                f"Admin ({config.ADMIN_EMAIL})",
-                                "Kỹ sư 1 (engineer.demo@gmail.com)",
-                                "Người dùng mới (new.guest@gmail.com)",
-                            ],
-                            key="quick_switch_select"
-                        )
-                        if st.button("Chuyển tài khoản", key="btn_apply_switch"):
-                            if "Admin" in switch_opt:
-                                login_user(config.ADMIN_EMAIL, "Box")
-                            elif "Kỹ sư 1" in switch_opt:
-                                login_user("engineer.demo@gmail.com", "Nguyễn Kỹ Sư")
-                            elif "Người dùng mới" in switch_opt:
-                                login_user("new.guest@gmail.com", "Guest User")
-                            st.rerun()
+                <!-- Google Account & Avatar (Hover to open) -->
+                <div class="nav-dropdown-item">
+                    <span class="nav-dropdown-label">
+                        <span>{user_display_name}</span>
+                        <span class="user-avatar-dot">{avatar_initial}</span>
+                        <span class="nav-arrow">⌵</span>
+                    </span>
+                    <div class="nav-dropdown-menu" style="right: 0; left: auto; min-width: 240px;">
+                        <div style="padding: 0.6rem 1.15rem; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.82rem; color: #94a3b8;">
+                            <div>{current_email or 'guest'}</div>
+                            <div style="color: #4ade80; font-weight: 600; margin-top: 2px;">{status.upper()} ({role.upper()})</div>
+                        </div>
+                        <a href="?user=admin" target="_self" class="nav-sub-link">👑 {t('switch_account', lang)}: Admin</a>
+                        <a href="?user=engineer" target="_self" class="nav-sub-link">⚡ {t('switch_account', lang)}: Kỹ sư</a>
+                        <a href="?user=guest" target="_self" class="nav-sub-link">⏳ {t('switch_account', lang)}: Chờ duyệt</a>
+                        <a href="?action=logout" target="_self" class="nav-sub-link" style="color: #f87171 !important;">🚪 {t('nav_logout', lang)}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    """
 
-                        if st.button(f"🚪 {t('nav_logout', lang)}", key="btn_logout_user", use_container_width=True):
-                            logout_user()
-                            st.rerun()
-                    else:
-                        st.markdown(f"### {t('nav_login', lang)}")
-                        st.info("Đăng nhập tài khoản Google:")
-                        if st.button(f"🚀 Đăng nhập Admin ({config.ADMIN_EMAIL})", use_container_width=True):
-                            login_user(config.ADMIN_EMAIL, "Box")
-                            st.rerun()
-                        if st.button("🚀 Đăng nhập Kỹ sư (Active)", use_container_width=True):
-                            login_user("engineer.demo@gmail.com", "Nguyễn Kỹ Sư")
-                            st.rerun()
-                        if st.button("🚀 Đăng nhập Khách mới (Pending)", use_container_width=True):
-                            login_user("new.guest@gmail.com", "Guest User")
-                            st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
-
-    # Bottom hairline border
-    st.markdown("<hr style='margin-top:0.3rem; margin-bottom:1.5rem; border:none; border-bottom:1px solid rgba(255,255,255,0.08);'>", unsafe_allow_html=True)
+    st.markdown(navbar_html, unsafe_allow_html=True)

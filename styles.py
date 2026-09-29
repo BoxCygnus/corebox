@@ -1,4 +1,4 @@
-# Custom styling and CSS for COREBOX Web Application (Maple-Inspired Clean Dark Theme)
+# Custom styling and CSS for COREBOX Web Application
 
 def get_custom_css() -> str:
     return """
@@ -7,96 +7,167 @@ def get_custom_css() -> str:
 
     /* Global reset & background */
     html, body, [class*="css"], [data-testid="stAppViewContainer"] {
-        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
         background-color: #0b0e17 !important;
         color: #f1f5f9;
     }
 
     [data-testid="stHeader"] {
-        background: transparent !important;
+        display: none !important;
+    }
+
+    .main .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 3rem !important;
+        max-width: 1200px !important;
     }
 
     /* ============================================================== */
-    /* TOP NAVBAR (Border-free flat task items, bold Corebox)         */
+    /* CUSTOM TOP NAVBAR (No white borders, pure hover dropdowns)     */
     /* ============================================================== */
+    .corebox-navbar-container {
+        background-color: #0b0e17;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 0.6rem 0.5rem;
+        margin-bottom: 2rem;
+        position: relative;
+        z-index: 1000;
+    }
 
-    /* Remove borders, backgrounds & shadows from all navbar buttons & popovers */
-    .top-navbar-btn button,
-    .top-navbar-btn [data-testid="stPopover"] > button,
-    .top-navbar-btn [data-testid="baseButton-secondary"],
-    .top-navbar-btn [data-testid="baseButton-primary"] {
-        background: transparent !important;
+    .nav-bar-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .nav-left-zone {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    /* Corebox Brand: In đậm và to hơn */
+    .brand-logo-text {
+        font-size: 1.45rem !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        text-decoration: none !important;
+        letter-spacing: -0.02em;
+        cursor: pointer;
         border: none !important;
-        box-shadow: none !important;
-        color: #cbd5e1 !important;
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
-        font-size: 0.95rem !important;
-        font-weight: 500 !important;
-        padding: 0.4rem 0.65rem !important;
-        border-radius: 8px !important;
-        transition: all 0.15s ease-in-out !important;
-        height: auto !important;
-        min-height: unset !important;
+        outline: none !important;
+        background: transparent !important;
+        transition: color 0.15s ease;
     }
 
-    .top-navbar-btn button:hover,
-    .top-navbar-btn [data-testid="stPopover"] > button:hover {
+    .brand-logo-text:hover {
+        color: #38bdf8 !important;
+    }
+
+    /* Nav Dropdown on HOVER (Không cần bấm vào) */
+    .nav-dropdown-item {
+        position: relative;
+        display: inline-block;
+        padding: 0.4rem 0;
+    }
+
+    .nav-dropdown-label {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #cbd5e1;
+        cursor: pointer;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        text-decoration: none;
+        border: none !important;
+        outline: none !important;
+        background: transparent !important;
+        transition: color 0.15s ease;
+    }
+
+    .nav-dropdown-label:hover {
+        color: #ffffff;
+    }
+
+    .nav-arrow {
+        font-size: 0.72rem;
+        color: #94a3b8;
+    }
+
+    /* Dropdown Menu Container: Hiện ra khi chỉ chuột vào (.nav-dropdown-item:hover) */
+    .nav-dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        min-width: 220px;
+        background: #111827;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        padding: 0.4rem 0;
+        z-index: 99999;
+    }
+
+    .nav-dropdown-item:hover .nav-dropdown-menu {
+        display: block;
+        animation: menuFadeIn 0.15s ease-out forwards;
+    }
+
+    @keyframes menuFadeIn {
+        from { opacity: 0; transform: translateY(-4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Mục con: Căn lề trái, tuyệt đối không có viền trắng */
+    .nav-sub-link {
+        display: block;
+        width: 100%;
+        padding: 0.65rem 1.15rem;
+        font-size: 0.92rem;
+        font-weight: 500;
+        color: #cbd5e1 !important;
+        text-decoration: none !important;
+        text-align: left !important;
+        border: none !important;
+        outline: none !important;
+        background: transparent !important;
+        box-sizing: border-box;
+        transition: all 0.15s ease;
+    }
+
+    .nav-sub-link:hover {
         background: rgba(255, 255, 255, 0.08) !important;
         color: #ffffff !important;
     }
 
-    /* Corebox Brand Button: BOLD AND LARGER */
-    .nav-brand-btn button,
-    .nav-brand-btn [data-testid="baseButton-secondary"],
-    .nav-brand-btn [data-testid="baseButton-primary"] {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        color: #ffffff !important;
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
-        font-size: 1.35rem !important;
-        font-weight: 800 !important;
-        letter-spacing: -0.02em !important;
-        padding: 0.2rem 0.5rem !important;
-        display: flex !important;
-        align-items: center !important;
-    }
-
-    .nav-brand-btn button:hover {
-        background: transparent !important;
-        color: #38bdf8 !important;
-    }
-
-    /* Navbar Search Pill Box */
-    .nav-search-box {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 9999px;
-        padding: 0.35rem 0.9rem;
+    /* Right Group: Search, Date/Time, Language, Google Avatar */
+    .nav-right-zone {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        gap: 1.5rem;
+    }
+
+    .nav-date-time {
         color: #94a3b8;
-        font-size: 0.88rem;
+        font-size: 0.85rem;
+        white-space: nowrap;
     }
-    .nav-search-shortcut {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 4px;
-        padding: 0.1rem 0.35rem;
-        font-size: 0.72rem;
+
+    .nav-user-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
         color: #cbd5e1;
+        font-size: 0.95rem;
+        font-weight: 500;
     }
 
-    /* Nav Divider */
-    .nav-divider {
-        color: rgba(255, 255, 255, 0.2);
-        font-weight: 300;
-        margin: 0 0.2rem;
-        user-select: none;
-    }
-
-    /* Avatar styling */
-    .user-avatar-circle {
+    .user-avatar-dot {
         width: 26px;
         height: 26px;
         border-radius: 50%;
@@ -107,49 +178,55 @@ def get_custom_css() -> str:
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        margin-left: 6px;
-        vertical-align: middle;
-        box-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+        box-shadow: 0 0 10px rgba(251, 191, 36, 0.35);
     }
 
     /* ============================================================== */
-    /* HERO SECTION (2-Tone Bold Title & Amber Pill CTA Button)       */
+    /* HERO SECTION (Corebox lớn nổi bật, Subtitle, Description)     */
     /* ============================================================== */
-
-    .hero-container {
+    .hero-box {
         text-align: center;
-        padding: 5rem 1rem 3.5rem 1rem;
+        padding: 4.5rem 1rem 3rem 1rem;
         max-width: 860px;
         margin: 0 auto;
     }
 
-    .hero-line-white {
-        font-size: 3.8rem;
+    /* Corebox in đậm, font chữ nổi bật, kích thước to */
+    .hero-brand-name {
+        font-size: 4.2rem;
         font-weight: 800;
-        color: #ffffff;
-        line-height: 1.12;
         letter-spacing: -0.03em;
-        margin: 0;
+        background: linear-gradient(135deg, #38bdf8 0%, #60a5fa 35%, #818cf8 70%, #c084fc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0 0 0.8rem 0;
+        text-shadow: 0 0 45px rgba(56, 189, 248, 0.35);
+        display: inline-block;
+        line-height: 1.1;
     }
 
-    .hero-line-gold {
-        font-size: 3.8rem;
-        font-weight: 800;
-        color: #fbbf24;
-        line-height: 1.12;
-        letter-spacing: -0.03em;
-        margin: 0.35rem 0 1.2rem 0;
+    /* Your project management, minus the manual hassle. */
+    .hero-subheadline {
+        font-size: 1.55rem;
+        font-weight: 600;
+        color: #f1f5f9;
+        margin: 0 0 0.6rem 0;
+        line-height: 1.35;
+        letter-spacing: -0.01em;
     }
 
-    .hero-subtext {
-        font-size: 1.15rem;
+    /* Data storage, automated inspection, and other supportive tools. (kích cỡ nhỏ hơn xíu) */
+    .hero-small-desc {
+        font-size: 1.05rem;
         color: #94a3b8;
         line-height: 1.6;
-        margin-bottom: 2.2rem;
+        margin: 0 auto 2.2rem auto;
+        max-width: 650px;
     }
 
     /* Yellow/Amber Pill Button */
-    .hero-cta-btn button {
+    .hero-cta-btn button,
+    .hero-cta-btn a {
         background: #fbbf24 !important;
         color: #0f172a !important;
         font-weight: 700 !important;
@@ -162,9 +239,12 @@ def get_custom_css() -> str:
         display: inline-flex !important;
         align-items: center !important;
         gap: 0.5rem !important;
+        text-decoration: none !important;
+        cursor: pointer !important;
     }
 
-    .hero-cta-btn button:hover {
+    .hero-cta-btn button:hover,
+    .hero-cta-btn a:hover {
         background: #f59e0b !important;
         transform: translateY(-2px) !important;
         box-shadow: 0 6px 25px rgba(251, 191, 36, 0.5) !important;
@@ -184,8 +264,8 @@ def get_custom_css() -> str:
 
     .feature-card:hover {
         transform: translateY(-4px);
-        border-color: rgba(251, 191, 36, 0.35);
-        box-shadow: 0 8px 30px rgba(251, 191, 36, 0.12);
+        border-color: rgba(56, 189, 248, 0.4);
+        box-shadow: 0 8px 30px rgba(56, 189, 248, 0.12);
     }
 
     .feature-icon {

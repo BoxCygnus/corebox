@@ -6,42 +6,30 @@ from auth import is_admin
 
 def render_home_view(lang: str):
     """
-    Renders Main Dashboard screen matching the user's reference image:
-    - Top headline:
-        'Your project management,' (Large White Bold)
-        'minus the manual hassle.' (Large Warm Gold Bold)
-    - Subtitle: 'Data storage, automated inspection, and other supportive tools.'
-    - Rounded amber/gold pill button: 'Explore the tools →' / 'Khám phá công cụ →'
-    - Feature cards & Database status
-    - Footer: 'Developed by Box'
+    Renders Main Dashboard screen:
+    - Corebox (In đậm, font chữ nổi bật, kích thước to)
+    - Your project management, minus the manual hassle.
+    - Data storage, automated inspection, and other supportive tools. (kích cỡ nhỏ hơn xíu)
+    - Tất cả nội dung UI hiển thị trừ Tên phần mềm Corebox đều có bản dịch tiếng Việt khi đổi ngôn ngữ.
     """
-    # 2-Tone Hero Section (Matching MapleTools reference)
+    # Hero Box Layout
     st.markdown(
         f"""
-        <div class="hero-container">
-            <h1 class="hero-line-white">Your project management,</h1>
-            <h1 class="hero-line-gold">minus the manual hassle.</h1>
-            <div class="hero-subtext">
-                {t('app_description', lang)}
+        <div class="hero-box">
+            <div class="hero-brand-name">Corebox</div>
+            <div class="hero-subheadline">{t('app_subtitle', lang)}</div>
+            <div class="hero-small-desc">{t('app_description', lang)}</div>
+            <div class="hero-cta-btn">
+                <a href="?page=inspect" target="_self">{t('explore_tools', lang)}</a>
             </div>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    # Centered CTA Button
-    col_cta1, col_cta2, col_cta3 = st.columns([1.5, 2, 1.5])
-    with col_cta2:
-        st.markdown('<div class="hero-cta-btn" style="text-align:center;">', unsafe_allow_html=True)
-        cta_label = "Khám phá công cụ →" if lang == "vi" else "Explore the tools →"
-        if st.button(cta_label, key="hero_explore_btn", use_container_width=True):
-            st.session_state["current_page"] = "inspect"
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    st.markdown("<br><br>", unsafe_allow_html=True)
-
-    # Feature Action Cards
+    # Feature Action Cards (Song ngữ đầy đủ)
     col1, col2, col3 = st.columns(3)
 
     # Card 1: Data Repository
@@ -57,9 +45,27 @@ def render_home_view(lang: str):
             unsafe_allow_html=True
         )
         st.write("")
-        if st.button(f"🚀 {t('btn_go', lang)}: {t('nav_repo', lang)}", key="home_btn_repo", use_container_width=True):
-            st.session_state["current_page"] = "repo"
-            st.rerun()
+        st.markdown(
+            f"""
+            <div style="text-align: center;">
+                <a href="?page=repo" target="_self" style="
+                    display: block;
+                    width: 100%;
+                    padding: 0.55rem 1rem;
+                    background: rgba(56, 189, 248, 0.1);
+                    color: #38bdf8;
+                    border: 1px solid rgba(56, 189, 248, 0.3);
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    box-sizing: border-box;
+                    transition: all 0.2s ease;
+                ">🚀 {t('btn_go', lang)}: {t('nav_repo', lang)}</a>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
     # Card 2: Work Code Inspection
     with col2:
@@ -74,9 +80,27 @@ def render_home_view(lang: str):
             unsafe_allow_html=True
         )
         st.write("")
-        if st.button(f"⚡ {t('btn_go', lang)}: {t('nav_inspection', lang)}", key="home_btn_inspect", use_container_width=True):
-            st.session_state["current_page"] = "inspect"
-            st.rerun()
+        st.markdown(
+            f"""
+            <div style="text-align: center;">
+                <a href="?page=inspect" target="_self" style="
+                    display: block;
+                    width: 100%;
+                    padding: 0.55rem 1rem;
+                    background: rgba(251, 191, 36, 0.1);
+                    color: #fbbf24;
+                    border: 1px solid rgba(251, 191, 36, 0.3);
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    box-sizing: border-box;
+                    transition: all 0.2s ease;
+                ">⚡ {t('btn_go', lang)}: {t('nav_inspection', lang)}</a>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
     # Card 3: User Management
     with col3:
@@ -92,17 +116,53 @@ def render_home_view(lang: str):
         )
         st.write("")
         if is_admin():
-            if st.button(f"👑 {t('btn_go', lang)}: {t('nav_users', lang)}", key="home_btn_users", use_container_width=True):
-                st.session_state["current_page"] = "users"
-                st.rerun()
+            st.markdown(
+                f"""
+                <div style="text-align: center;">
+                    <a href="?page=users" target="_self" style="
+                        display: block;
+                        width: 100%;
+                        padding: 0.55rem 1rem;
+                        background: rgba(168, 85, 247, 0.1);
+                        color: #c084fc;
+                        border: 1px solid rgba(168, 85, 247, 0.3);
+                        border-radius: 8px;
+                        text-decoration: none;
+                        font-weight: 600;
+                        font-size: 0.9rem;
+                        box-sizing: border-box;
+                        transition: all 0.2s ease;
+                    ">👑 {t('btn_go', lang)}: {t('nav_users', lang)}</a>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
         else:
-            st.button(f"🔒 {t('nav_users', lang)} (Admin)", key="home_btn_users_disabled", use_container_width=True, disabled=True)
+            st.markdown(
+                f"""
+                <div style="text-align: center;">
+                    <span style="
+                        display: block;
+                        width: 100%;
+                        padding: 0.55rem 1rem;
+                        background: rgba(255, 255, 255, 0.05);
+                        color: #64748b;
+                        border: 1px solid rgba(255, 255, 255, 0.08);
+                        border-radius: 8px;
+                        font-size: 0.9rem;
+                        box-sizing: border-box;
+                        cursor: not-allowed;
+                    ">🔒 {t('nav_users', lang)} (Admin)</span>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
-    # Footer
+    # Footer (Song ngữ)
     st.markdown(
         f"""
         <div class="corebox-footer">
-            {t('app_footer', lang)} • Built with Python & Cloudflare • Version 2.0
+            {t('app_footer', lang)} • Cloudflare & Python Architecture • Version 2.0
         </div>
         """,
         unsafe_allow_html=True
