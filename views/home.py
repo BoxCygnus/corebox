@@ -111,18 +111,19 @@ transition: all 0.2s ease;
 </div>""")
         else:
             safe_html(f"""<div style="text-align: center;">
-<span style="
+<a href="?page=login&lang={lang}" onclick="return window.coreboxNav('login', '{lang}', event)" target="_self" style="
 display: block;
 width: 100%;
 padding: 0.55rem 1rem;
 background: rgba(255, 255, 255, 0.05);
-color: #64748b;
-border: 1px solid rgba(255, 255, 255, 0.08);
+color: #94a3b8;
+border: 1px solid rgba(255, 255, 255, 0.1);
 border-radius: 8px;
+text-decoration: none;
 font-size: 0.9rem;
 box-sizing: border-box;
-cursor: not-allowed;
-">🔒 {t('nav_users', lang)} (Admin)</span>
+transition: all 0.2s ease;
+">🔒 {t('nav_users', lang)} (Admin)</a>
 </div>""")
 
     # Footer (Cách mép dưới màn hình 1cm)

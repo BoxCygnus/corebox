@@ -11,25 +11,13 @@ def render_top_navbar(lang: str, current_page: str = "home"):
     - 'Tools ⌵' and 'Administrator ⌵': Hover dropdowns, no white borders, left-aligned.
     - Bordered search box for functions/tools (Khung search có viền).
     - Language switcher with hover dropdown: Pure text 'Vietnamese' and 'English' (no icons).
-    - Google account name + Google Avatar with hover dropdown (no mock test accounts).
+    - Guest pill (Guest / Khách + 👤 avatar) with dropdown to Login when not logged in.
+    - User name + Avatar with dropdown to Switch Google Account / Logout when logged in.
     - Client-side fast SPA navigation (< 50ms) without full browser reload.
     """
     current_user = get_current_user()
     current_email = get_current_user_email()
     user_is_admin = is_admin()
-
-    # Format user display name & initial
-    if current_user:
-        raw_name = current_user.get("full_name") or current_email.split("@")[0]
-        user_display_name = raw_name
-        avatar_initial = (user_display_name[0] if user_display_name else "U").upper()
-        role = current_user.get("role", "user")
-        status = current_user.get("status", "pending")
-    else:
-        user_display_name = t("nav_guest", lang)
-        avatar_initial = "G"
-        role = "guest"
-        status = "none"
 
     # Admin sub-item link
     if user_is_admin:
@@ -40,8 +28,48 @@ def render_top_navbar(lang: str, current_page: str = "home"):
     # Current language text (Pure text: Vietnamese or English, no symbols)
     current_lang_display = "Vietnamese" if lang == "vi" else "English"
 
-    # Role badge string for dropdown
-    role_display = "ADMIN" if user_is_admin else status.upper()
+    # User Display vs Guest Display
+    if current_user:
+        raw_name = current_user.get("full_name") or current_email.split("@")[0]
+        user_display_name = raw_name
+        avatar_initial = (user_display_name[0] if user_display_name else "U").upper()
+        role = current_user.get("role", "user")
+        status = current_user.get("status", "pending")
+        role_display = "👑 ADMIN" if user_is_admin else ("🟢 ACTIVE" if status == "active" else "⏳ CHỜ DUYỆT")
+
+        user_menu_html = f"""
+        <div class="nav-dropdown-item">
+          <span class="nav-dropdown-label" style="display:inline-flex; align-items:center; gap:0.5rem; background:rgba(255,255,255,0.04); padding:0.35rem 0.75rem; border-radius:9999px; border:1px solid rgba(255,255,255,0.1);">
+            <span style="font-weight:600; font-size:0.88rem; color:#f1f5f9;">{user_display_name}</span>
+            <span class="user-avatar-dot" style="width:24px; height:24px; border-radius:50%; background:linear-gradient(135deg, #38bdf8 0%, #818cf8 100%); color:#0b0f19; font-weight:700; font-size:0.75rem; display:inline-flex; align-items:center; justify-content:center;">{avatar_initial}</span>
+            <span class="nav-arrow">⌵</span>
+          </span>
+          <div class="nav-dropdown-menu" style="right: 0; left: auto; min-width: 240px;">
+            <div style="padding: 0.65rem 1.15rem; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.82rem; color: #94a3b8;">
+              <div style="font-weight: 600; color: #f1f5f9; margin-bottom: 3px;">{current_email}</div>
+              <div style="color: #38bdf8; font-size: 0.75rem; font-weight: 700;">{role_display}</div>
+            </div>
+            {f'<a href="?page=users&lang={lang}" onclick="return window.coreboxNav(\\'users\\', \\'{lang}\\', event)" target="_self" class="nav-sub-link">👥 {t("nav_users", lang)}</a>' if user_is_admin else ''}
+            <a href="?page=login&lang={lang}" onclick="return window.coreboxNav('login', '{lang}', event)" target="_self" class="nav-sub-link">🌐 {t('btn_switch_google', lang)}</a>
+            <a href="?page={current_page}&lang={lang}&action=logout" onclick="return window.coreboxAction('logout', event)" target="_self" class="nav-sub-link" style="color: #f87171 !important;">🚪 {t('nav_logout', lang)}</a>
+          </div>
+        </div>
+        """
+    else:
+        guest_text = t("nav_guest", lang)
+        user_menu_html = f"""
+        <div class="nav-dropdown-item">
+          <span class="nav-dropdown-label" style="display:inline-flex; align-items:center; gap:0.45rem; background:rgba(255,255,255,0.05); padding:0.35rem 0.8rem; border-radius:9999px; border:1px solid rgba(255,255,255,0.12); cursor:pointer;">
+            <span style="font-weight:600; font-size:0.88rem; color:#f1f5f9;">{guest_text}</span>
+            <span style="width:24px; height:24px; border-radius:50%; background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color:#0b0f19; font-size:0.75rem; display:inline-flex; align-items:center; justify-content:center;">👤</span>
+            <span class="nav-arrow">⌵</span>
+          </span>
+          <div class="nav-dropdown-menu" style="right: 0; left: auto; min-width: 170px;">
+            <a href="?page=login&lang={lang}" onclick="return window.coreboxNav('login', '{lang}', event)" target="_self" class="nav-sub-link" style="color:#38bdf8 !important; font-weight:600;">➔ {t('nav_login_action', lang)}</a>
+            <a href="?page=home&lang={lang}" onclick="return window.coreboxNav('home', '{lang}', event)" target="_self" class="nav-sub-link">⚙ {t('nav_settings', lang)}</a>
+          </div>
+        </div>
+        """
 
     # Build unindented HTML with instant SPA router script
     navbar_html = f"""<div class="corebox-navbar-container">
@@ -85,22 +113,8 @@ def render_top_navbar(lang: str, current_page: str = "home"):
 <a href="?page={current_page}&lang=en" onclick="return window.coreboxLang('en', event)" target="_self" class="nav-sub-link">English</a>
 </div>
 </div>
-<!-- Google Account & Avatar -->
-<div class="nav-dropdown-item">
-<span class="nav-dropdown-label">
-<span>{user_display_name}</span>
-<span class="user-avatar-dot">{avatar_initial}</span>
-<span class="nav-arrow">⌵</span>
-</span>
-<div class="nav-dropdown-menu" style="right: 0; left: auto; min-width: 250px;">
-<div style="padding: 0.65rem 1.15rem; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.82rem; color: #94a3b8;">
-<div style="font-weight: 600; color: #f1f5f9; margin-bottom: 2px;">{current_email or 'guest'}</div>
-<div style="color: #38bdf8; font-size: 0.75rem; font-weight: 600;">{role_display}</div>
-</div>
-<a href="?page={current_page}&lang={lang}&action=google_login" onclick="return window.coreboxAction('login', event)" target="_self" class="nav-sub-link">🌐 {t('btn_switch_google', lang)}</a>
-<a href="?page={current_page}&lang={lang}&action=logout" onclick="return window.coreboxAction('logout', event)" target="_self" class="nav-sub-link" style="color: #f87171 !important;">🚪 {t('nav_logout', lang)}</a>
-</div>
-</div>
+<!-- User / Guest Pill & Avatar -->
+{user_menu_html}
 </div>
 </div>
 </div>"""

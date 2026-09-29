@@ -26,6 +26,7 @@ def build_pages_app():
         "views/users.py",
         "views/repository.py",
         "views/inspection.py",
+        "views/login.py",
     ]
 
     bundle_dict = {}
