@@ -95,8 +95,8 @@ def render_top_navbar(lang: str, current_page: str = "home"):
 <div style="color: #4ade80; font-weight: 600; margin-top: 2px;">{status.upper()} ({role.upper()})</div>
 </div>
 <a href="?page={current_page}&lang={lang}&user=admin" target="_self" class="nav-sub-link">👑 {t('switch_account', lang)}: Admin</a>
-<a href="?page={current_page}&lang={lang}&user=engineer" target="_self" class="nav-sub-link">⚡ {t('switch_account', lang)}: Kỹ sư</a>
-<a href="?page={current_page}&lang={lang}&user=guest" target="_self" class="nav-sub-link">⏳ {t('switch_account', lang)}: Chờ duyệt</a>
+<a href="?page={current_page}&lang={lang}&user=engineer" target="_self" class="nav-sub-link">⚡ {t('switch_account', lang)}: {t('role_engineer', lang)}</a>
+<a href="?page={current_page}&lang={lang}&user=guest" target="_self" class="nav-sub-link">⏳ {t('switch_account', lang)}: {t('role_pending', lang)}</a>
 <a href="?page={current_page}&lang={lang}&action=logout" target="_self" class="nav-sub-link" style="color: #f87171 !important;">🚪 {t('nav_logout', lang)}</a>
 </div>
 </div>

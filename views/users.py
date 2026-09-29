@@ -1,6 +1,6 @@
 import streamlit as st
 import config
-from i18n import t
+from i18n import t, format_datetime_by_lang
 from database import db
 from auth import is_admin, get_current_user_email
 
@@ -13,7 +13,7 @@ def render_users_view(lang: str):
     """
     if not is_admin():
         st.error(t("access_denied", lang, admin_email=config.ADMIN_EMAIL))
-        st.info("Vui lòng đăng nhập với tài khoản Admin để truy cập khu vực này.")
+        st.info(t("admin_access_hint", lang))
         return
 
     st.markdown(f"## 👥 {t('user_mgmt_title', lang)}")
@@ -31,12 +31,13 @@ def render_users_view(lang: str):
             u_email = u["email"]
             u_name = u["full_name"] or u_email.split("@")[0]
             u_time = u.get("created_at", "")
+            formatted_u_time = format_datetime_by_lang(u_time, lang)
 
             with st.container(border=True):
                 col_info, col_btn1, col_btn2 = st.columns([6, 2, 2], vertical_alignment="center")
                 with col_info:
                     st.markdown(f"**👤 {u_name}** (`{u_email}`)")
-                    st.caption(f"📅 {t('th_registered_at', lang)}: {u_time}")
+                    st.caption(f"📅 {t('th_registered_at', lang)}: {formatted_u_time}")
                 with col_btn1:
                     if st.button(f"✅ {t('btn_approve', lang)}", key=f"btn_app_{idx}_{u_email}", use_container_width=True, type="primary"):
                         db.update_user_status(u_email, "active")
@@ -64,35 +65,36 @@ def render_users_view(lang: str):
             with st.container(border=True):
                 col_info, col_actions = st.columns([7, 3], vertical_alignment="center")
                 with col_info:
-                    badge_str = "👑 Admin Chính thức" if is_root_admin else ("⚡ Quản trị viên" if u_role == "admin" else "👤 Người dùng")
+                    badge_str = t("badge_root_admin", lang) if is_root_admin else (t("badge_admin", lang) if u_role == "admin" else t("badge_user", lang))
                     st.markdown(f"**{u_name}** (`{u_email}`) — *{badge_str}*")
-                    st.caption(f"Cập nhật lần cuối: {u.get('updated_at', u.get('created_at', ''))}")
+                    formatted_updated = format_datetime_by_lang(u.get('updated_at', u.get('created_at', '')), lang)
+                    st.caption(f"{t('last_updated_prefix', lang)}: {formatted_updated}")
                 with col_actions:
                     if not is_root_admin:
                         btn_c1, btn_c2 = st.columns(2)
                         with btn_c1:
-                            if st.button("Tạm khóa", key=f"btn_lock_{idx}_{u_email}", use_container_width=True):
+                            if st.button(t("btn_suspend", lang), key=f"btn_lock_{idx}_{u_email}", use_container_width=True):
                                 db.update_user_status(u_email, "pending")
                                 st.rerun()
                         with btn_c2:
-                            if st.button("Xóa", key=f"btn_del_{idx}_{u_email}", use_container_width=True):
+                            if st.button(t("btn_delete", lang), key=f"btn_del_{idx}_{u_email}", use_container_width=True):
                                 db.delete_user(u_email)
                                 st.rerun()
                     else:
-                        st.badge("Hệ thống bảo vệ", icon="🔒")
+                        st.badge(t("badge_protected", lang), icon="🔒")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     # 3. REJECTED USERS (if any)
     rejected_users = db.get_all_users(status="rejected")
     if rejected_users:
-        with st.expander(f"🚫 Danh sách tài khoản đã từ chối ({len(rejected_users)})"):
+        with st.expander(t("rejected_users_section", lang, count=len(rejected_users))):
             for idx, u in enumerate(rejected_users):
                 u_email = u["email"]
                 col_a, col_b = st.columns([7, 3])
                 with col_a:
                     st.write(f"• `{u_email}` ({u.get('full_name', '')})")
                 with col_b:
-                    if st.button("Khôi phục duyệt", key=f"btn_restore_{idx}_{u_email}"):
+                    if st.button(t("btn_restore", lang), key=f"btn_restore_{idx}_{u_email}"):
                         db.update_user_status(u_email, "active")
                         st.rerun()

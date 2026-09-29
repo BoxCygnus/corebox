@@ -10,8 +10,8 @@ TRANSLATIONS = {
         
         # Navigation
         "nav_home": "Corebox",
-        "nav_tools": "Tools",
-        "nav_admin": "Administrator",
+        "nav_tools": "Công cụ",
+        "nav_admin": "Quản trị viên",
         "nav_language": "Ngôn ngữ",
         "nav_search_placeholder": "Tìm kiếm chức năng...",
         "nav_repo": "Kho dữ liệu công việc",
@@ -55,6 +55,18 @@ TRANSLATIONS = {
         "msg_approved_success": "Đã phê duyệt tài khoản {email} thành công!",
         "msg_rejected_success": "Đã từ chối tài khoản {email}.",
         "msg_no_pending": "Hiện tại không có tài khoản nào đang chờ phê duyệt.",
+        "badge_root_admin": "👑 Admin chính thức",
+        "badge_admin": "⚡ Quản trị viên",
+        "badge_user": "👤 Người dùng",
+        "last_updated_prefix": "Cập nhật lần cuối",
+        "badge_protected": "Hệ thống bảo vệ",
+        "btn_suspend": "Tạm khóa",
+        "btn_delete": "Xóa",
+        "btn_restore": "Khôi phục duyệt",
+        "rejected_users_section": "Danh sách tài khoản đã từ chối ({count})",
+        "admin_access_hint": "Vui lòng đăng nhập với tài khoản Admin để truy cập khu vực này.",
+        "role_engineer": "Kỹ sư",
+        "role_pending": "Chờ duyệt",
         
         # Tools: Data Repository
         "repo_title": "Kho dữ liệu công việc",
@@ -209,6 +221,18 @@ TRANSLATIONS = {
         "msg_approved_success": "Account {email} has been approved successfully!",
         "msg_rejected_success": "Account {email} has been rejected.",
         "msg_no_pending": "There are currently no accounts waiting for approval.",
+        "badge_root_admin": "👑 Official Admin",
+        "badge_admin": "⚡ Administrator",
+        "badge_user": "👤 User",
+        "last_updated_prefix": "Last updated",
+        "badge_protected": "System Protected",
+        "btn_suspend": "Suspend",
+        "btn_delete": "Delete",
+        "btn_restore": "Restore",
+        "rejected_users_section": "Rejected Accounts List ({count})",
+        "admin_access_hint": "Please sign in with an Administrator account to access this area.",
+        "role_engineer": "Engineer",
+        "role_pending": "Pending Approval",
         
         # Tools: Data Repository
         "repo_title": "Work Code Data Repository",
@@ -320,3 +344,44 @@ def t(key: str, lang: str = "vi", **kwargs) -> str:
         except Exception:
             return text
     return text
+
+def format_datetime_by_lang(val: str, lang: str = "vi") -> str:
+    """
+    Format date/time string according to language preference:
+    - vi: dd-mm-yyyy (e.g. 29-09-2026 21:17:50)
+    - en: yyyy-mm-dd (e.g. 2026-09-29 21:17:50)
+    """
+    if not val:
+        return ""
+    val_clean = str(val).strip()
+    try:
+        time_part = ""
+        date_part = val_clean
+        if " " in val_clean:
+            date_part, time_part = val_clean.split(" ", 1)
+        elif "T" in val_clean:
+            date_part, time_part = val_clean.split("T", 1)
+            time_part = time_part.split(".")[0].rstrip("Z")
+
+        delim = "-" if "-" in date_part else ("/" if "/" in date_part else None)
+        if delim:
+            parts = date_part.split(delim)
+            if len(parts) == 3:
+                if len(parts[0]) == 4:
+                    yyyy, mm, dd = parts[0], parts[1].zfill(2), parts[2].zfill(2)
+                elif len(parts[2]) == 4:
+                    dd, mm, yyyy = parts[0].zfill(2), parts[1].zfill(2), parts[2]
+                else:
+                    yyyy, mm, dd = parts[0], parts[1], parts[2]
+
+                if lang == "en":
+                    formatted_date = f"{yyyy}-{mm}-{dd}"
+                else:
+                    formatted_date = f"{dd}-{mm}-{yyyy}"
+
+                if time_part:
+                    return f"{formatted_date} {time_part.strip()}"
+                return formatted_date
+    except Exception:
+        pass
+    return val_clean

@@ -3,29 +3,10 @@ import re
 import streamlit as st
 import pandas as pd
 import config
-from i18n import t
+from i18n import t, format_datetime_by_lang
 from database import db
 from auth import is_admin, get_current_user_email
 from parsers import extract_from_excel, extract_from_docx, extract_from_pdf, extract_first_unit
-
-def format_datetime_display(val: str) -> str:
-    """Định dạng ngày thành dd/mm/yyyy HH:MM:SS."""
-    if not val:
-        return ""
-    val_clean = str(val).strip()
-    try:
-        if " " in val_clean:
-            d_part, t_part = val_clean.split(" ", 1)
-            parts = d_part.split("-")
-            if len(parts) == 3 and len(parts[0]) == 4:
-                return f"{parts[2]}/{parts[1]}/{parts[0]} {t_part}"
-        elif "-" in val_clean:
-            parts = val_clean.split("-")
-            if len(parts) == 3 and len(parts[0]) == 4:
-                return f"{parts[2]}/{parts[1]}/{parts[0]}"
-    except Exception:
-        pass
-    return val_clean
 
 def render_repository_view(lang: str):
     """
@@ -108,7 +89,7 @@ def render_repository_view(lang: str):
             fname = f["filename"]
             fcount = f.get("total_records", 0)
             fuser = f.get("uploaded_by", "")
-            ftime_formatted = format_datetime_display(f.get("uploaded_at", ""))
+            ftime_formatted = format_datetime_by_lang(f.get("uploaded_at", ""), lang)
 
             with st.container(border=True):
                 col_f1, col_f2 = st.columns([7, 3], vertical_alignment="center")
