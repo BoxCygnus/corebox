@@ -2,70 +2,44 @@ import streamlit as st
 import config
 from i18n import t
 from database import db
-from auth import is_admin, is_active, is_pending
+from auth import is_admin
 
 def render_home_view(lang: str):
     """
-    Renders Main Dashboard screen:
-    - Glowing title COREBOX
-    - Subtitle: 'Your project management, minus the manual hassle.'
-    - Description: 'Data storage, automated inspection, and other supportive tools.'
-    - Navigation cards & system status
+    Renders Main Dashboard screen matching the user's reference image:
+    - Top headline:
+        'Your project management,' (Large White Bold)
+        'minus the manual hassle.' (Large Warm Gold Bold)
+    - Subtitle: 'Data storage, automated inspection, and other supportive tools.'
+    - Rounded amber/gold pill button: 'Explore the tools →' / 'Khám phá công cụ →'
+    - Feature cards & Database status
     - Footer: 'Developed by Box'
     """
-    # Glowing Hero Header
+    # 2-Tone Hero Section (Matching MapleTools reference)
     st.markdown(
         f"""
-        <div class="corebox-hero">
-            <h1 class="corebox-title">{t('app_title', lang)}</h1>
-            <div class="corebox-subtitle">"{t('app_subtitle', lang)}"</div>
-            <div class="corebox-desc">{t('app_description', lang)}</div>
+        <div class="hero-container">
+            <h1 class="hero-line-white">Your project management,</h1>
+            <h1 class="hero-line-gold">minus the manual hassle.</h1>
+            <div class="hero-subtext">
+                {t('app_description', lang)}
+            </div>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    # Quick Stats & Database Status Bar
-    total_codes = db.count_work_codes()
-    total_files = len(db.get_uploaded_files())
-    backend_name = db.get_backend_name()
+    # Centered CTA Button
+    col_cta1, col_cta2, col_cta3 = st.columns([1.5, 2, 1.5])
+    with col_cta2:
+        st.markdown('<div class="hero-cta-btn" style="text-align:center;">', unsafe_allow_html=True)
+        cta_label = "Khám phá công cụ →" if lang == "vi" else "Explore the tools →"
+        if st.button(cta_label, key="hero_explore_btn", use_container_width=True):
+            st.session_state["current_page"] = "inspect"
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    stat_col1, stat_col2, stat_col3 = st.columns(3)
-    with stat_col1:
-        st.markdown(
-            f"""
-            <div class="metric-card">
-                <div style="color:#94a3b8; font-size:0.85rem; font-weight:600;">{t('home_card_repo_title', lang)}</div>
-                <div class="metric-val metric-val-info">{total_codes:,}</div>
-                <div style="color:#64748b; font-size:0.75rem;">{total_files} {t('th_filename', lang).lower()}</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    with stat_col2:
-        st.markdown(
-            f"""
-            <div class="metric-card">
-                <div style="color:#94a3b8; font-size:0.85rem; font-weight:600;">{t('database_status', lang)}</div>
-                <div class="metric-val metric-val-success" style="font-size:1.3rem; margin-top:0.6rem;">{backend_name}</div>
-                <div style="color:#64748b; font-size:0.75rem;">Cloudflare D1 Ready</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    with stat_col3:
-        st.markdown(
-            f"""
-            <div class="metric-card">
-                <div style="color:#94a3b8; font-size:0.85rem; font-weight:600;">Admin</div>
-                <div class="metric-val metric-val-info" style="font-size:1.05rem; margin-top:0.75rem; word-break:break-all;">{config.ADMIN_EMAIL}</div>
-                <div style="color:#64748b; font-size:0.75rem;">Primary Controller</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<br><br>", unsafe_allow_html=True)
 
     # Feature Action Cards
     col1, col2, col3 = st.columns(3)
