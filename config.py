@@ -15,6 +15,12 @@ APP_FOOTER = "Phát triển bởi Box"
 # Admin Configuration
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "happyclone96@gmail.com").strip().lower()
 
+# Google Cloud OAuth 2.0 Client ID (from Google Cloud Console)
+GOOGLE_CLIENT_ID = os.getenv(
+    "GOOGLE_CLIENT_ID",
+    "806346687682-2u257o2r9r330c6n9so3f4uj1ntm5rcb.apps.googleusercontent.com"
+).strip()
+
 # Cloudflare Configuration
 CLOUDFLARE_ACCOUNT_ID = os.getenv("CLOUDFLARE_ACCOUNT_ID", "").strip()
 CLOUDFLARE_D1_DATABASE_ID = os.getenv("CLOUDFLARE_D1_DATABASE_ID", "").strip()

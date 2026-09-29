@@ -9,7 +9,8 @@ from auth import (
     is_active,
     is_pending,
     login_user,
-    logout_user
+    logout_user,
+    verify_and_login_google_token
 )
 from navbar import render_top_navbar
 from views.home import render_home_view
@@ -104,6 +105,19 @@ elif q_action == "logout":
         del st.query_params["action"]
     except Exception:
         pass
+
+# Handle Google OAuth 2.0 token callback from Google Identity Services
+g_token = st.query_params.get("g_token")
+if g_token:
+    user = verify_and_login_google_token(g_token)
+    try:
+        del st.query_params["g_token"]
+    except Exception:
+        pass
+    if user:
+        st.session_state["current_page"] = "home"
+        st.query_params["page"] = "home"
+        st.rerun()
 
 # Initialize Session Defaults
 if "lang" not in st.session_state:

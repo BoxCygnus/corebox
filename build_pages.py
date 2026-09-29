@@ -48,6 +48,7 @@ def build_pages_app():
   <title>COREBOX — Project Management</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.73.1/build/stlite.css" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     body, html {{
       margin: 0;
@@ -211,6 +212,47 @@ def build_pages_app():
       window.location.href = url.toString();
       return false;
     }};
+
+    window.handleGoogleCredentialResponse = function(response) {{
+      if (!response || !response.credential) return;
+      const url = new URL(window.location);
+      url.searchParams.set("page", "home");
+      url.searchParams.set("g_token", response.credential);
+      window.location.href = url.toString();
+    }};
+
+    window.initGoogleSignIn = function() {{
+      try {{
+        if (window.google && window.google.accounts && window.google.accounts.id) {{
+          window.google.accounts.id.initialize({{
+            client_id: "806346687682-2u257o2r9r330c6n9so3f4uj1ntm5rcb.apps.googleusercontent.com",
+            callback: window.handleGoogleCredentialResponse,
+            auto_select: false,
+            cancel_on_tap_outside: true
+          }});
+          const target = document.getElementById("google-signin-btn-slot");
+          if (target && !target.hasChildNodes()) {{
+            window.google.accounts.id.renderButton(target, {{
+              theme: "filled_blue",
+              size: "large",
+              shape: "rectangular",
+              text: "continue_with",
+              logo_alignment: "left",
+              width: 360
+            }});
+          }}
+        }}
+      }} catch (e) {{
+        console.error("Google Identity Services error:", e);
+      }}
+    }};
+
+    setInterval(() => {{
+      const target = document.getElementById("google-signin-btn-slot");
+      if (target && !target.hasChildNodes()) {{
+        window.initGoogleSignIn();
+      }}
+    }}, 400);
 
     window.addEventListener("load", async () => {{
       const loadStatus = document.getElementById("load-status");

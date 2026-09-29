@@ -2,7 +2,6 @@ import textwrap
 import streamlit as st
 import config
 from i18n import t
-from auth import login_user, get_current_user_email
 
 def safe_html(html_str: str):
     clean_html = textwrap.dedent(html_str).strip()
@@ -13,10 +12,10 @@ def safe_html(html_str: str):
 
 def render_login_view(lang: str):
     """
-    Renders modern Split-Screen Google Login View (matching reference UI):
-    - Top Left: '← Back' button returning to previous screen / home.
-    - Left Column: Bold Corebox branding, subtitle, 4 project mascots/tools, footer.
-    - Right Column: 'Welcome back', Google Sign-In button, quick admin login, email entry, terms notice.
+    Renders modern Split-Screen Google Login View (Google Cloud Console OAuth 2.0):
+    - Top Left: '← Back' button returning to home.
+    - Left Column: Bold Corebox branding, subtitle, mascots, footer.
+    - Right Column: 'Welcome back', official Google Identity Services OAuth button, security notice, terms.
     """
     # Top Bar with Back Button
     safe_html(f"""
@@ -79,7 +78,7 @@ def render_login_view(lang: str):
             {t('login_brand_desc', lang)}
           </div>
 
-          <!-- Mascots / Feature icons row (like the 4 characters in Image 1) -->
+          <!-- Mascots / Feature icons row -->
           <div style="
             display: flex;
             align-items: center;
@@ -116,7 +115,13 @@ def render_login_view(lang: str):
         """)
 
     with col_right:
-        # Right login box (clean, modern, matching image 1)
+        # Right login box (clean, modern, authentic Google Cloud OAuth 2.0)
+        auth_hint_text = (
+            f"Xác thực bảo mật qua <b>Google Cloud Console</b>. Hệ thống tự động cấp quyền <b>Admin chính thức</b> cho tài khoản <code>{config.ADMIN_EMAIL}</code>. Các tài khoản Google khác sẽ được phân quyền Người dùng (chờ duyệt)."
+            if lang == "vi" else
+            f"Secured by <b>Google Cloud Console</b>. Official <b>Admin privileges</b> are automatically granted to <code>{config.ADMIN_EMAIL}</code>. Other Google accounts receive standard user privileges (pending approval)."
+        )
+
         safe_html(f"""
         <div style="padding-top: 3.5rem; max-width: 440px;">
           <div style="
@@ -135,72 +140,58 @@ def render_login_view(lang: str):
           ">
             {t('login_sync_subtitle', lang)}
           </div>
-        </div>
-        """)
 
-        # Fast 1-Click Admin Login Button (for convenient access)
-        btn_quick_admin = st.button(
-            f"{t('login_quick_admin', lang)}",
-            type="primary",
-            use_container_width=True,
-            key="btn_quick_admin_login"
-        )
-        if btn_quick_admin:
-            login_user(config.ADMIN_EMAIL, "Box (Admin)")
-            st.session_state["current_page"] = "home"
-            st.query_params["page"] = "home"
-            st.rerun()
+          <!-- Official Google Identity Services Container -->
+          <div id="g_id_onload"
+               data-client_id="{config.GOOGLE_CLIENT_ID}"
+               data-context="signin"
+               data-ux_mode="popup"
+               data-callback="handleGoogleCredentialResponse"
+               data-auto_prompt="false">
+          </div>
+          
+          <div style="margin: 1.5rem 0; min-height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.8rem;">
+            <!-- Slot for Google rendered standard button -->
+            <div id="google-signin-btn-slot"></div>
+            
+            <!-- Standard GSI fallback signin button -->
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-shape="rectangular"
+                 data-theme="filled_blue"
+                 data-text="continue_with"
+                 data-size="large"
+                 data-logo_alignment="left"
+                 data-width="360">
+            </div>
+          </div>
 
-        st.markdown(f"""
-        <div style="
-          display: flex;
-          align-items: center;
-          text-align: center;
-          margin: 1.5rem 0;
-          color: #475569;
-          font-size: 0.75rem;
-          font-weight: 700;
-          letter-spacing: 0.1em;
-        ">
-          <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
-          <span style="padding: 0 0.8rem;">{t('login_or_divider', lang)}</span>
-          <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
-        </div>
-        """, unsafe_allow_html=True)
+          <!-- Security & Role info card -->
+          <div style="
+            background: rgba(56, 189, 248, 0.05);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 12px;
+            padding: 1rem 1.2rem;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-top: 1.5rem;
+          ">
+            <div style="display: flex; align-items: flex-start; gap: 0.6rem;">
+              <span style="font-size: 1.1rem; line-height: 1;">🔒</span>
+              <div>{auth_hint_text}</div>
+            </div>
+          </div>
 
-        # Google Email Input Form
-        with st.form("google_sign_in_form", clear_on_submit=False):
-            input_email = st.text_input(
-                t("enter_google_email", lang),
-                placeholder=t("login_email_placeholder", lang),
-                key="google_email_login_field"
-            )
-            submit_google = st.form_submit_button(
-                f"🚀 {t('btn_continue_google', lang)}",
-                type="secondary",
-                use_container_width=True
-            )
-
-            if submit_google:
-                if input_email and "@" in input_email:
-                    clean_email = input_email.strip().lower()
-                    login_user(clean_email)
-                    st.session_state["current_page"] = "home"
-                    st.query_params["page"] = "home"
-                    st.rerun()
-                else:
-                    st.error("Vui lòng nhập định dạng email hợp lệ (vd: yourname@gmail.com)!" if lang == "vi" else "Please enter a valid email address (e.g. yourname@gmail.com)!")
-
-        # Terms & Privacy Policy footer notice
-        safe_html(f"""
-        <div style="
-          margin-top: 1.8rem;
-          font-size: 0.82rem;
-          color: #64748b;
-          line-height: 1.6;
-          text-align: center;
-          max-width: 440px;
-        ">
-          {t('login_terms_privacy', lang)}
+          <!-- Terms & Privacy Policy footer notice -->
+          <div style="
+            margin-top: 2rem;
+            font-size: 0.82rem;
+            color: #64748b;
+            line-height: 1.6;
+            text-align: center;
+          ">
+            {t('login_terms_privacy', lang)}
+          </div>
         </div>
         """)
