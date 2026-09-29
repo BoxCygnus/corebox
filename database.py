@@ -1,12 +1,36 @@
 import os
-import sqlite3
 import datetime
+from typing import List, Dict, Any, Optional, Tuple
+import config
+
+try:
+    import sqlite3
+except (ImportError, ModuleNotFoundError):
+    sqlite3 = None
+
 try:
     import requests
 except Exception:
     requests = None
-from typing import List, Dict, Any, Optional, Tuple
-import config
+
+# Default seed catalog codes for instant out-of-the-box browsing
+DEFAULT_SEED_CODES = [
+    {"code": "AB.12300", "raw_code": "AB.123", "name": "Đào móng công trình bằng máy đào 0.8m3, đất cấp II", "unit": "100m3", "source_file": "danh_muc_chuan_2024.xlsx"},
+    {"code": "AF.12340", "raw_code": "AF.1234", "name": "Bê tông lót móng đá 4x6 mác 100", "unit": "m3", "source_file": "danh_muc_chuan_2024.xlsx"},
+    {"code": "AF.21111", "raw_code": "AF.21111", "name": "Bê tông móng đổ bằng thủ công đá 1x2 mác 200", "unit": "m3", "source_file": "danh_muc_chuan_2024.xlsx"},
+    {"code": "AF.22222", "raw_code": "AF.22222", "name": "Bê tông cột vách đá 1x2 mác 250", "unit": "m3", "source_file": "danh_muc_chuan_2024.xlsx"},
+    {"code": "AF.33333", "raw_code": "AF.33333", "name": "Bê tông dầm sàn đá 1x2 mác 250", "unit": "m3", "source_file": "danh_muc_chuan_2024.xlsx"},
+    {"code": "AF.61111", "raw_code": "AF.61111", "name": "Ván khuôn móng thép", "unit": "100m2", "source_file": "danh_muc_chuan_2024.xlsx"},
+    {"code": "AF.62222", "raw_code": "AF.62222", "name": "Ván khuôn cột dầm sàn thép", "unit": "100m2", "source_file": "danh_muc_chuan_2024.xlsx"},
+    {"code": "AF.63333", "raw_code": "AF.63333", "name": "Cốt thép dầm sàn đường kính <= 10mm", "unit": "tấn", "source_file": "danh_muc_chuan_2024.xlsx"},
+    {"code": "AF.64444", "raw_code": "AF.64444", "name": "Cốt thép dầm sàn đường kính <= 18mm", "unit": "tấn", "source_file": "danh_muc_chuan_2024.xlsx"},
+    {"code": "AK.11111", "raw_code": "AK.11111", "name": "Xây tường gạch ống 8x8x18 vữa xi măng mác 75", "unit": "m3", "source_file": "danh_muc_chuan_2024.xlsx"},
+    {"code": "AK.22222", "raw_code": "AK.22222", "name": "Trát tường trong vữa xi măng mác 75 dày 1.5cm", "unit": "m2", "source_file": "danh_muc_chuan_2024.xlsx"},
+    {"code": "AK.33333", "raw_code": "AK.33333", "name": "Lát gạch granite nhân tạo 600x600", "unit": "m2", "source_file": "danh_muc_chuan_2024.xlsx"},
+    {"code": "BA.11100", "raw_code": "BA.111", "name": "Lắp đặt dây dẫn điện đơn ruột đồng", "unit": "100m", "source_file": "danh_muc_chuan_2024.xlsx"},
+    {"code": "BA.22220", "raw_code": "BA.2222", "name": "Lắp đặt tủ điện phân phối chiếu sáng", "unit": "cái", "source_file": "danh_muc_chuan_2024.xlsx"},
+    {"code": "BA.33333", "raw_code": "BA.33333", "name": "Lắp đặt đèn LED panel 600x600 48W", "unit": "bộ", "source_file": "danh_muc_chuan_2024.xlsx"},
+]
 
 class Database:
     def __init__(self):
@@ -16,7 +40,14 @@ class Database:
             and config.CLOUDFLARE_API_TOKEN
             and requests is not None
         )
-        if not self.use_d1:
+        self.has_sqlite = (sqlite3 is not None)
+
+        # In-memory store (active in Pyodide / WebAssembly environment where sqlite3 is absent)
+        self._users: Dict[str, Dict[str, Any]] = {}
+        self._work_codes: List[Dict[str, Any]] = []
+        self._uploaded_files: Dict[str, Dict[str, Any]] = {}
+
+        if not self.use_d1 and self.has_sqlite:
             db_dir = os.path.dirname(config.DB_PATH)
             if db_dir:
                 try:
@@ -26,9 +57,15 @@ class Database:
         self.init_db()
 
     def get_backend_name(self) -> str:
-        return "Cloudflare D1" if self.use_d1 else "Local SQLite"
+        if self.use_d1:
+            return "Cloudflare D1"
+        if self.has_sqlite:
+            return "Local SQLite"
+        return "WebAssembly Memory Engine (Pyodide)"
 
     def _execute_sqlite(self, query: str, params: tuple = ()) -> List[Dict[str, Any]]:
+        if not self.has_sqlite:
+            return []
         conn = sqlite3.connect(config.DB_PATH)
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
@@ -53,7 +90,6 @@ class Database:
             "Authorization": f"Bearer {config.CLOUDFLARE_API_TOKEN}",
             "Content-Type": "application/json"
         }
-        # Cloudflare D1 expects query and params
         payload = {
             "sql": query,
             "params": list(params)
@@ -69,185 +105,274 @@ class Database:
                 return result_objs[0]["results"]
             return []
         except Exception as e:
-            # If D1 call fails, log and fallback to local sqlite
-            print(f"[Database] D1 query failed, falling back to SQLite: {e}")
-            return self._execute_sqlite(query, params)
+            print(f"[Database] D1 query failed, falling back: {e}")
+            if self.has_sqlite:
+                return self._execute_sqlite(query, params)
+            return []
 
     def execute(self, query: str, params: tuple = ()) -> List[Dict[str, Any]]:
         if self.use_d1:
             return self._execute_d1(query, params)
-        return self._execute_sqlite(query, params)
+        if self.has_sqlite:
+            return self._execute_sqlite(query, params)
+        return []
 
     def init_db(self):
         """Create tables if they don't exist and ensure default admin is configured."""
-        schema = [
-            """
-            CREATE TABLE IF NOT EXISTS users (
-                email TEXT PRIMARY KEY,
-                full_name TEXT,
-                role TEXT DEFAULT 'user',
-                status TEXT DEFAULT 'pending',
-                created_at TEXT,
-                updated_at TEXT
-            );
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS work_codes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                code TEXT NOT NULL,
-                raw_code TEXT,
-                name TEXT NOT NULL,
-                unit TEXT DEFAULT '',
-                source_file TEXT NOT NULL,
-                created_at TEXT
-            );
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS uploaded_files (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                filename TEXT UNIQUE NOT NULL,
-                total_records INTEGER DEFAULT 0,
-                uploaded_by TEXT NOT NULL,
-                uploaded_at TEXT
-            );
-            """,
-            """
-            CREATE INDEX IF NOT EXISTS idx_work_codes_code ON work_codes(code);
-            """,
-            """
-            CREATE INDEX IF NOT EXISTS idx_work_codes_file ON work_codes(source_file);
-            """
-        ]
-        
-        for statement in schema:
-            self.execute(statement)
-
-        # Seed or ensure default official Admin
-        admin_email = config.ADMIN_EMAIL
         now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        existing_admin = self.get_user(admin_email)
-        if not existing_admin:
-            self.execute(
-                "INSERT INTO users (email, full_name, role, status, created_at, updated_at) "
-                "VALUES (?, ?, 'admin', 'active', ?, ?)",
-                (admin_email, "System Administrator", now_str, now_str)
-            )
-        else:
-            # Ensure always active admin
-            if existing_admin.get("role") != "admin" or existing_admin.get("status") != "active":
+        admin_email = config.ADMIN_EMAIL.strip().lower()
+
+        if self.use_d1 or self.has_sqlite:
+            schema = [
+                """
+                CREATE TABLE IF NOT EXISTS users (
+                    email TEXT PRIMARY KEY,
+                    full_name TEXT,
+                    role TEXT DEFAULT 'user',
+                    status TEXT DEFAULT 'pending',
+                    created_at TEXT,
+                    updated_at TEXT
+                );
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS work_codes (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    code TEXT NOT NULL,
+                    raw_code TEXT,
+                    name TEXT NOT NULL,
+                    unit TEXT DEFAULT '',
+                    source_file TEXT NOT NULL,
+                    created_at TEXT
+                );
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS uploaded_files (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    filename TEXT UNIQUE NOT NULL,
+                    total_records INTEGER DEFAULT 0,
+                    uploaded_by TEXT NOT NULL,
+                    uploaded_at TEXT
+                );
+                """,
+                """
+                CREATE INDEX IF NOT EXISTS idx_work_codes_code ON work_codes(code);
+                """,
+                """
+                CREATE INDEX IF NOT EXISTS idx_work_codes_file ON work_codes(source_file);
+                """
+            ]
+            for statement in schema:
+                self.execute(statement)
+
+            existing_admin = self.get_user(admin_email)
+            if not existing_admin:
                 self.execute(
-                    "UPDATE users SET role = 'admin', status = 'active', updated_at = ? WHERE email = ?",
-                    (now_str, admin_email)
+                    "INSERT INTO users (email, full_name, role, status, created_at, updated_at) "
+                    "VALUES (?, ?, 'admin', 'active', ?, ?)",
+                    (admin_email, "System Administrator", now_str, now_str)
                 )
+            else:
+                if existing_admin.get("role") != "admin" or existing_admin.get("status") != "active":
+                    self.execute(
+                        "UPDATE users SET role = 'admin', status = 'active', updated_at = ? WHERE email = ?",
+                        (now_str, admin_email)
+                    )
+        else:
+            # In-memory initialization (Pyodide in browser)
+            self._users[admin_email] = {
+                "email": admin_email,
+                "full_name": "System Administrator",
+                "role": "admin",
+                "status": "active",
+                "created_at": now_str,
+                "updated_at": now_str
+            }
+            # Seed default records if empty
+            if not self._work_codes:
+                for r in DEFAULT_SEED_CODES:
+                    self._work_codes.append({
+                        "code": r["code"],
+                        "raw_code": r["raw_code"],
+                        "name": r["name"],
+                        "unit": r["unit"],
+                        "source_file": r["source_file"],
+                        "created_at": now_str
+                    })
+                self._uploaded_files["danh_muc_chuan_2024.xlsx"] = {
+                    "filename": "danh_muc_chuan_2024.xlsx",
+                    "total_records": len(DEFAULT_SEED_CODES),
+                    "uploaded_by": admin_email,
+                    "uploaded_at": now_str
+                }
 
     # ================= User Management =================
     def get_user(self, email: str) -> Optional[Dict[str, Any]]:
         if not email:
             return None
-        res = self.execute("SELECT * FROM users WHERE email = ? LIMIT 1", (email.strip().lower(),))
-        return res[0] if res else None
+        norm_email = email.strip().lower()
+        if self.use_d1 or self.has_sqlite:
+            res = self.execute("SELECT * FROM users WHERE email = ? LIMIT 1", (norm_email,))
+            return res[0] if res else None
+        return self._users.get(norm_email)
 
     def register_or_get_user(self, email: str, full_name: str = "") -> Dict[str, Any]:
-        email = email.strip().lower()
-        user = self.get_user(email)
+        norm_email = email.strip().lower()
+        user = self.get_user(norm_email)
         now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
+
         if user:
             return user
-        
-        # Determine status and role
-        if email == config.ADMIN_EMAIL:
+
+        if norm_email == config.ADMIN_EMAIL.strip().lower():
             role = "admin"
             status = "active"
         else:
             role = "user"
-            status = "pending"  # Needs approval queue
-            
-        display_name = full_name or email.split("@")[0]
-        self.execute(
-            "INSERT INTO users (email, full_name, role, status, created_at, updated_at) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
-            (email, display_name, role, status, now_str, now_str)
-        )
-        return self.get_user(email)
+            status = "pending"
+
+        display_name = full_name or norm_email.split("@")[0]
+
+        if self.use_d1 or self.has_sqlite:
+            self.execute(
+                "INSERT INTO users (email, full_name, role, status, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (norm_email, display_name, role, status, now_str, now_str)
+            )
+            return self.get_user(norm_email)
+        else:
+            new_u = {
+                "email": norm_email,
+                "full_name": display_name,
+                "role": role,
+                "status": status,
+                "created_at": now_str,
+                "updated_at": now_str
+            }
+            self._users[norm_email] = new_u
+            return new_u
 
     def get_all_users(self, status: Optional[str] = None) -> List[Dict[str, Any]]:
-        if status:
-            return self.execute("SELECT * FROM users WHERE status = ? ORDER BY created_at DESC", (status,))
-        return self.execute("SELECT * FROM users ORDER BY created_at DESC")
+        if self.use_d1 or self.has_sqlite:
+            if status:
+                return self.execute("SELECT * FROM users WHERE status = ? ORDER BY created_at DESC", (status,))
+            return self.execute("SELECT * FROM users ORDER BY created_at DESC")
+        else:
+            users = list(self._users.values())
+            if status:
+                users = [u for u in users if u.get("status") == status]
+            users.sort(key=lambda u: u.get("created_at", ""), reverse=True)
+            return users
 
     def update_user_status(self, email: str, status: str):
         now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.execute(
-            "UPDATE users SET status = ?, updated_at = ? WHERE email = ?",
-            (status, now_str, email.strip().lower())
-        )
+        norm_email = email.strip().lower()
+        if self.use_d1 or self.has_sqlite:
+            self.execute(
+                "UPDATE users SET status = ?, updated_at = ? WHERE email = ?",
+                (status, now_str, norm_email)
+            )
+        else:
+            u = self._users.get(norm_email)
+            if u:
+                u["status"] = status
+                u["updated_at"] = now_str
 
     def update_user_role(self, email: str, role: str):
         now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.execute(
-            "UPDATE users SET role = ?, updated_at = ? WHERE email = ?",
-            (role, now_str, email.strip().lower())
-        )
+        norm_email = email.strip().lower()
+        if self.use_d1 or self.has_sqlite:
+            self.execute(
+                "UPDATE users SET role = ?, updated_at = ? WHERE email = ?",
+                (role, now_str, norm_email)
+            )
+        else:
+            u = self._users.get(norm_email)
+            if u:
+                u["role"] = role
+                u["updated_at"] = now_str
 
     def delete_user(self, email: str):
-        # Do not allow deleting root official admin
-        if email.strip().lower() == config.ADMIN_EMAIL:
+        norm_email = email.strip().lower()
+        if norm_email == config.ADMIN_EMAIL.strip().lower():
             return
-        self.execute("DELETE FROM users WHERE email = ?", (email.strip().lower(),))
+        if self.use_d1 or self.has_sqlite:
+            self.execute("DELETE FROM users WHERE email = ?", (norm_email,))
+        else:
+            self._users.pop(norm_email, None)
 
     # ================= Work Codes Repository =================
     def add_work_codes(self, records: List[Dict[str, str]], filename: str, uploaded_by: str) -> int:
-        """
-        Saves work codes extracted from a file.
-        If file already exists, old records from this file are purged first.
-        """
         now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
-        # Purge existing if any
-        self.execute("DELETE FROM work_codes WHERE source_file = ?", (filename,))
-        self.execute("DELETE FROM uploaded_files WHERE filename = ?", (filename,))
-        
-        # Insert work codes
-        inserted_count = 0
-        if not self.use_d1:
-            conn = sqlite3.connect(config.DB_PATH)
-            cur = conn.cursor()
-            try:
+
+        if self.use_d1 or self.has_sqlite:
+            self.execute("DELETE FROM work_codes WHERE source_file = ?", (filename,))
+            self.execute("DELETE FROM uploaded_files WHERE filename = ?", (filename,))
+
+            inserted_count = 0
+            if self.has_sqlite and not self.use_d1:
+                conn = sqlite3.connect(config.DB_PATH)
+                cur = conn.cursor()
+                try:
+                    for r in records:
+                        cur.execute(
+                            "INSERT INTO work_codes (code, raw_code, name, unit, source_file, created_at) "
+                            "VALUES (?, ?, ?, ?, ?, ?)",
+                            (r["code"], r.get("raw_code", r["code"]), r["name"], r.get("unit", ""), filename, now_str)
+                        )
+                        inserted_count += 1
+                    conn.commit()
+                finally:
+                    conn.close()
+            else:
                 for r in records:
-                    cur.execute(
+                    self.execute(
                         "INSERT INTO work_codes (code, raw_code, name, unit, source_file, created_at) "
                         "VALUES (?, ?, ?, ?, ?, ?)",
                         (r["code"], r.get("raw_code", r["code"]), r["name"], r.get("unit", ""), filename, now_str)
                     )
                     inserted_count += 1
-                conn.commit()
-            finally:
-                conn.close()
+
+            self.execute(
+                "INSERT INTO uploaded_files (filename, total_records, uploaded_by, uploaded_at) "
+                "VALUES (?, ?, ?, ?)",
+                (filename, inserted_count, uploaded_by, now_str)
+            )
+            return inserted_count
         else:
-            # Batch or sequential insert for D1
+            # In-memory implementation
+            self._work_codes = [r for r in self._work_codes if r.get("source_file") != filename]
             for r in records:
-                self.execute(
-                    "INSERT INTO work_codes (code, raw_code, name, unit, source_file, created_at) "
-                    "VALUES (?, ?, ?, ?, ?, ?)",
-                    (r["code"], r.get("raw_code", r["code"]), r["name"], r.get("unit", ""), filename, now_str)
-                )
-                inserted_count += 1
-                
-        # Record file metadata
-        self.execute(
-            "INSERT INTO uploaded_files (filename, total_records, uploaded_by, uploaded_at) "
-            "VALUES (?, ?, ?, ?)",
-            (filename, inserted_count, uploaded_by, now_str)
-        )
-        return inserted_count
+                self._work_codes.append({
+                    "code": r["code"],
+                    "raw_code": r.get("raw_code", r["code"]),
+                    "name": r["name"],
+                    "unit": r.get("unit", ""),
+                    "source_file": filename,
+                    "created_at": now_str
+                })
+            self._uploaded_files[filename] = {
+                "filename": filename,
+                "total_records": len(records),
+                "uploaded_by": uploaded_by,
+                "uploaded_at": now_str
+            }
+            return len(records)
 
     def get_uploaded_files(self) -> List[Dict[str, Any]]:
-        return self.execute("SELECT * FROM uploaded_files ORDER BY uploaded_at DESC")
+        if self.use_d1 or self.has_sqlite:
+            return self.execute("SELECT * FROM uploaded_files ORDER BY uploaded_at DESC")
+        else:
+            files = list(self._uploaded_files.values())
+            files.sort(key=lambda f: f.get("uploaded_at", ""), reverse=True)
+            return files
 
     def delete_uploaded_file(self, filename: str):
-        self.execute("DELETE FROM work_codes WHERE source_file = ?", (filename,))
-        self.execute("DELETE FROM uploaded_files WHERE filename = ?", (filename,))
+        if self.use_d1 or self.has_sqlite:
+            self.execute("DELETE FROM work_codes WHERE source_file = ?", (filename,))
+            self.execute("DELETE FROM uploaded_files WHERE filename = ?", (filename,))
+        else:
+            self._work_codes = [r for r in self._work_codes if r.get("source_file") != filename]
+            self._uploaded_files.pop(filename, None)
 
     def get_work_codes(
         self,
@@ -256,42 +381,67 @@ class Database:
         limit: int = 100,
         offset: int = 0
     ) -> List[Dict[str, Any]]:
-        query = "SELECT * FROM work_codes WHERE 1=1"
-        params = []
-        if source_file:
-            query += " AND source_file = ?"
-            params.append(source_file)
-        if search:
-            query += " AND (code LIKE ? OR name LIKE ? OR raw_code LIKE ?)"
-            s_param = f"%{search}%"
-            params.extend([s_param, s_param, s_param])
-        query += " ORDER BY code ASC LIMIT ? OFFSET ?"
-        params.extend([limit, offset])
-        return self.execute(query, tuple(params))
+        if self.use_d1 or self.has_sqlite:
+            query = "SELECT * FROM work_codes WHERE 1=1"
+            params = []
+            if source_file:
+                query += " AND source_file = ?"
+                params.append(source_file)
+            if search:
+                query += " AND (code LIKE ? OR name LIKE ? OR raw_code LIKE ?)"
+                s_param = f"%{search}%"
+                params.extend([s_param, s_param, s_param])
+            query += " ORDER BY code ASC LIMIT ? OFFSET ?"
+            params.extend([limit, offset])
+            return self.execute(query, tuple(params))
+        else:
+            res = []
+            for r in self._work_codes:
+                if source_file and r.get("source_file") != source_file:
+                    continue
+                if search:
+                    s = search.lower()
+                    if (s not in r.get("code", "").lower()
+                        and s not in r.get("name", "").lower()
+                        and s not in r.get("raw_code", "").lower()):
+                        continue
+                res.append(r)
+            res.sort(key=lambda x: x.get("code", ""))
+            return res[offset:offset+limit]
 
     def count_work_codes(self, search: Optional[str] = None, source_file: Optional[str] = None) -> int:
-        query = "SELECT COUNT(*) as cnt FROM work_codes WHERE 1=1"
-        params = []
-        if source_file:
-            query += " AND source_file = ?"
-            params.append(source_file)
-        if search:
-            query += " AND (code LIKE ? OR name LIKE ? OR raw_code LIKE ?)"
-            s_param = f"%{search}%"
-            params.extend([s_param, s_param, s_param])
-        res = self.execute(query, tuple(params))
-        return res[0]["cnt"] if res else 0
+        if self.use_d1 or self.has_sqlite:
+            query = "SELECT COUNT(*) as cnt FROM work_codes WHERE 1=1"
+            params = []
+            if source_file:
+                query += " AND source_file = ?"
+                params.append(source_file)
+            if search:
+                query += " AND (code LIKE ? OR name LIKE ? OR raw_code LIKE ?)"
+                s_param = f"%{search}%"
+                params.extend([s_param, s_param, s_param])
+            res = self.execute(query, tuple(params))
+            return res[0]["cnt"] if res else 0
+        else:
+            cnt = 0
+            for r in self._work_codes:
+                if source_file and r.get("source_file") != source_file:
+                    continue
+                if search:
+                    s = search.lower()
+                    if (s not in r.get("code", "").lower()
+                        and s not in r.get("name", "").lower()
+                        and s not in r.get("raw_code", "").lower()):
+                        continue
+                cnt += 1
+            return cnt
 
     def get_all_codes_lookup(self) -> Dict[str, Dict[str, str]]:
-        """
-        Loads all work codes into a fast in-memory lookup dictionary:
-        {
-           'AB.12300': {'name': '...', 'unit': '...', 'source': '...'},
-           ...
-        }
-        Also maps raw_code as fallback.
-        """
-        rows = self.execute("SELECT code, raw_code, name, unit, source_file FROM work_codes")
+        if self.use_d1 or self.has_sqlite:
+            rows = self.execute("SELECT code, raw_code, name, unit, source_file FROM work_codes")
+        else:
+            rows = self._work_codes
+
         lookup = {}
         for r in rows:
             info = {
