@@ -1,4 +1,5 @@
 import io
+import re
 import streamlit as st
 import pandas as pd
 import config
@@ -7,13 +8,32 @@ from database import db
 from auth import is_admin, get_current_user_email
 from parsers import extract_from_excel, extract_from_docx, extract_from_pdf, extract_first_unit
 
+def format_datetime_display(val: str) -> str:
+    """Định dạng ngày thành dd/mm/yyyy HH:MM:SS."""
+    if not val:
+        return ""
+    val_clean = str(val).strip()
+    try:
+        if " " in val_clean:
+            d_part, t_part = val_clean.split(" ", 1)
+            parts = d_part.split("-")
+            if len(parts) == 3 and len(parts[0]) == 4:
+                return f"{parts[2]}/{parts[1]}/{parts[0]} {t_part}"
+        elif "-" in val_clean:
+            parts = val_clean.split("-")
+            if len(parts) == 3 and len(parts[0]) == 4:
+                return f"{parts[2]}/{parts[1]}/{parts[0]}"
+    except Exception:
+        pass
+    return val_clean
+
 def render_repository_view(lang: str):
     """
     Renders Kho Dữ Liệu (Data Repository) view:
     - Smart Extraction from .docx, .xlsx, .pdf
     - Work code normalization XX.YYYYY
     - File management with source_file tag (Admin only for upload / delete)
-    - 'Xem danh mục tổng hợp' (Master Repository Viewer)
+    - Master Repository Viewer with full bilingual support
     """
     user_is_admin = is_admin()
     user_email = get_current_user_email() or "guest"
@@ -40,7 +60,7 @@ def render_repository_view(lang: str):
             )
 
             uploaded_file = st.file_uploader(
-                "Chọn tệp danh mục định mức (.xlsx, .docx, .pdf):",
+                t("upload_catalog_label", lang),
                 type=["xlsx", "docx", "pdf"],
                 key="repo_file_uploader"
             )
@@ -51,12 +71,12 @@ def render_repository_view(lang: str):
 
                 col_u1, col_u2 = st.columns([3, 1], vertical_alignment="center")
                 with col_u1:
-                    st.write(f"📄 **Tệp đã chọn:** `{filename}` ({uploaded_file.size / 1024:.1f} KB)")
+                    st.write(f"📄 **{t('selected_file', lang)}:** `{filename}` ({uploaded_file.size / 1024:.1f} KB)")
                 with col_u2:
                     process_btn = st.button(f"⚡ {t('btn_process_file', lang)}", type="primary", use_container_width=True)
 
                 if process_btn:
-                    with st.spinner("Đang trích xuất thông minh và chuẩn hóa mã hiệu..."):
+                    with st.spinner(t("extracting_spinner", lang)):
                         file_bytes = uploaded_file.getvalue()
                         records = []
                         try:
@@ -67,13 +87,12 @@ def render_repository_view(lang: str):
                             elif ext == "pdf":
                                 records = extract_from_pdf(file_bytes, filename)
                         except Exception as e:
-                            st.error(f"Lỗi xử lý tệp: {e}")
+                            st.error(f"Lỗi: {e}")
                             return
 
                         if not records:
-                            st.warning("Không tìm thấy bảng dữ liệu hợp lệ chứa cột Mã CV và Tên công việc trong tệp này.")
+                            st.warning(t("msg_no_table_found", lang))
                         else:
-                            # Save to database
                             inserted_count = db.add_work_codes(records, filename, user_email)
                             st.success(t("msg_upload_success", lang, count=inserted_count, filename=filename))
                             st.rerun()
@@ -89,13 +108,13 @@ def render_repository_view(lang: str):
             fname = f["filename"]
             fcount = f.get("total_records", 0)
             fuser = f.get("uploaded_by", "")
-            ftime = f.get("uploaded_at", "")
+            ftime_formatted = format_datetime_display(f.get("uploaded_at", ""))
 
             with st.container(border=True):
                 col_f1, col_f2 = st.columns([7, 3], vertical_alignment="center")
                 with col_f1:
                     st.markdown(f"📄 **{fname}** — `{fcount:,} mã CV`")
-                    st.caption(f"Tải lên bởi: `{fuser}` | Lúc: {ftime}")
+                    st.caption(f"{t('uploaded_by_prefix', lang)}: `{fuser}` | {t('uploaded_at_prefix', lang)}: {ftime_formatted}")
                 with col_f2:
                     if user_is_admin:
                         if st.button(f"🗑️ {t('btn_delete_file', lang)}", key=f"del_file_{fname}", use_container_width=True):
@@ -103,7 +122,7 @@ def render_repository_view(lang: str):
                             st.warning(t("msg_delete_file_success", lang, filename=fname))
                             st.rerun()
                     else:
-                        st.caption("🔒 Quyền xem")
+                        st.caption(f"🔒 {t('view_only_perm', lang)}")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -113,22 +132,22 @@ def render_repository_view(lang: str):
 
     total_records = db.count_work_codes()
     if total_records == 0:
-        st.info("Kho dữ liệu hiện chưa có bản ghi nào. Hãy tải lên tệp mẫu để xem danh mục.")
+        st.info(t("msg_repo_empty_browse", lang))
         return
 
     # Filter & Search row
     col_s1, col_s2 = st.columns([2, 3])
     with col_s1:
-        file_options = ["Tất cả"] + [f["filename"] for f in files]
+        file_options = [t("all_option", lang)] + [f["filename"] for f in files]
         selected_file_filter = st.selectbox(t("filter_by_file", lang), options=file_options, key="repo_file_filter")
     with col_s2:
         search_query = st.text_input(
-            "Tìm kiếm:",
+            t("search_label", lang),
             placeholder=t("search_code_or_name", lang),
             key="repo_search_input"
         )
 
-    filter_source = None if selected_file_filter == "Tất cả" else selected_file_filter
+    filter_source = None if selected_file_filter == t("all_option", lang) else selected_file_filter
     matching_count = db.count_work_codes(search=search_query or None, source_file=filter_source)
     st.caption(t("total_records", lang, count=f"{matching_count:,}"))
 
@@ -137,9 +156,9 @@ def render_repository_view(lang: str):
     total_pages = max(1, (matching_count + page_size - 1) // page_size)
     page_col1, page_col2 = st.columns([2, 8], vertical_alignment="center")
     with page_col1:
-        current_page_num = st.number_input("Trang", min_value=1, max_value=total_pages, value=1, step=1, key="repo_page_num")
+        current_page_num = st.number_input(t("page_label", lang), min_value=1, max_value=total_pages, value=1, step=1, key="repo_page_num")
     with page_col2:
-        st.caption(f"Hiển thị trang {current_page_num} / {total_pages} (50 mã mỗi trang)")
+        st.caption(t("showing_page_info", lang, current=current_page_num, total=total_pages))
 
     offset = (current_page_num - 1) * page_size
     records = db.get_work_codes(search=search_query or None, source_file=filter_source, limit=page_size, offset=offset)
@@ -148,19 +167,35 @@ def render_repository_view(lang: str):
         for r in records:
             r["unit"] = extract_first_unit(r.get("unit", ""))
         df = pd.DataFrame(records)[["code", "raw_code", "name", "unit", "source_file"]]
-        df.columns = ["Mã chuẩn hóa (XX.YYYYY)", "Mã gốc trong file", "Tên công việc", "ĐVT", "Tệp nguồn"]
+        df.columns = [
+            t("col_norm_code", lang),
+            t("col_raw_code", lang),
+            t("col_work_name", lang),
+            t("col_unit", lang),
+            t("col_source_file", lang)
+        ]
         st.dataframe(df, use_container_width=True, hide_index=True)
 
-        # Export button for repository
+        # Export button with 1cm spacing from bottom
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
             df_all = pd.DataFrame(db.get_work_codes(search=search_query or None, source_file=filter_source, limit=10000, offset=0))
             if not df_all.empty:
+                for idx_row in range(len(df_all)):
+                    df_all.at[idx_row, "unit"] = extract_first_unit(df_all.at[idx_row, "unit"])
                 df_all = df_all[["code", "raw_code", "name", "unit", "source_file"]]
-                df_all.columns = ["Mã chuẩn hóa (XX.YYYYY)", "Mã gốc trong file", "Tên công việc", "ĐVT", "Tệp nguồn"]
+                df_all.columns = [
+                    t("col_norm_code", lang),
+                    t("col_raw_code", lang),
+                    t("col_work_name", lang),
+                    t("col_unit", lang),
+                    t("col_source_file", lang)
+                ]
                 df_all.to_excel(writer, sheet_name='Kho_Du_Lieu', index=False)
         output.seek(0)
         
+        # 1cm bottom spacing wrapper
+        st.markdown('<div style="margin-top: 1rem; margin-bottom: 1cm; padding-bottom: 0.5cm;">', unsafe_allow_html=True)
         st.download_button(
             label=f"📥 {t('btn_export_repo', lang)}",
             data=output,
@@ -168,3 +203,4 @@ def render_repository_view(lang: str):
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             key="dl_btn_repo_xlsx"
         )
+        st.markdown('</div>', unsafe_allow_html=True)

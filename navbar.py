@@ -10,7 +10,7 @@ def render_top_navbar(lang: str, current_page: str = "home"):
     - 📦Corebox: Icon 📦 is separated, slightly larger than text.
     - 'Tools ⌵' and 'Administrator ⌵': Hover dropdowns, no white borders, left-aligned.
     - Bordered search box for functions/tools (Khung search có viền).
-    - Language switcher with hover dropdown: ALWAYS retains current page and switches language globally!
+    - Language switcher with hover dropdown: Pure text 'Vietnamese' and 'English' (no icons).
     - All tool links retain the currently active language!
     - Google account name + Google Avatar with hover dropdown.
     """
@@ -37,8 +37,8 @@ def render_top_navbar(lang: str, current_page: str = "home"):
     else:
         admin_link_html = f'<span class="nav-sub-link" style="opacity:0.5; cursor:not-allowed;">🔒 {t("nav_users", lang)} ({t("nav_admin_badge", lang)})</span>'
 
-    # Current language indicator
-    current_lang_display = "Tiếng Việt" if lang == "vi" else "English"
+    # Current language text (Pure text: Vietnamese or English, no symbols)
+    current_lang_display = "Vietnamese" if lang == "vi" else "English"
 
     # Build unindented HTML to avoid any Markdown code block interpretation
     navbar_html = f"""<div class="corebox-navbar-container">
@@ -74,12 +74,12 @@ def render_top_navbar(lang: str, current_page: str = "home"):
 <a href="?page=users&lang={lang}" target="_self" class="nav-sub-link">👥 {t('nav_users', lang)}</a>
 </div>
 </div>
-<!-- Language Switcher Dropdown (Retains current active page!) -->
+<!-- Language Switcher Dropdown (Pure text Vietnamese / English, no icons) -->
 <div class="nav-dropdown-item">
-<span class="nav-dropdown-label">🌐 {current_lang_display} <span class="nav-arrow">⌵</span></span>
-<div class="nav-dropdown-menu" style="min-width: 150px;">
-<a href="?page={current_page}&lang=vi" target="_self" class="nav-sub-link">🇻🇳 Tiếng Việt</a>
-<a href="?page={current_page}&lang=en" target="_self" class="nav-sub-link">🇬🇧 English</a>
+<span class="nav-dropdown-label">{current_lang_display} <span class="nav-arrow">⌵</span></span>
+<div class="nav-dropdown-menu" style="min-width: 140px;">
+<a href="?page={current_page}&lang=vi" target="_self" class="nav-sub-link">Vietnamese</a>
+<a href="?page={current_page}&lang=en" target="_self" class="nav-sub-link">English</a>
 </div>
 </div>
 <!-- Google Account & Avatar -->

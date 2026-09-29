@@ -51,22 +51,21 @@ def render_inspection_view(lang: str):
         t("upload_inspect_label", lang),
         type=["xlsx", "xlsm"],
         key="inspect_file_uploader",
-        help="Chỉ xử lý trong bộ nhớ phiên làm việc, file sẽ được giải phóng ngay sau đó."
+        help=t("inspect_upload_help", lang)
     )
 
     if uploaded_excel is not None:
         filename = uploaded_excel.name
         col_act1, col_act2 = st.columns([3, 1], vertical_alignment="center")
         with col_act1:
-            st.write(f"📄 **Tệp kiểm tra:** `{filename}` ({uploaded_excel.size / 1024:.1f} KB)")
+            st.write(f"📄 **{t('inspect_file_selected', lang)}:** `{filename}` ({uploaded_excel.size / 1024:.1f} KB)")
         with col_act2:
             inspect_btn = st.button(f"🚀 {t('btn_inspect', lang)}", type="primary", use_container_width=True)
 
         if inspect_btn or "inspection_results" in st.session_state:
             if inspect_btn:
-                with st.spinner("Đang đọc sheet 'ĐGTH' với data_only=True và phân nhóm theo Hạng mục..."):
+                with st.spinner(t("inspecting_spinner", lang)):
                     file_bytes = uploaded_excel.getvalue()
-                    # In-memory lookup dict from DB
                     repo_lookup = db.get_all_codes_lookup()
                     results = inspect_dgth_sheet(file_bytes, repo_lookup)
                     st.session_state["inspection_results"] = results
@@ -130,8 +129,8 @@ def render_inspection_view(lang: str):
 
             # FILTER OPTIONS
             filter_mode = st.radio(
-                "Chế độ hiển thị kết quả:",
-                options=["Tất cả", "Chỉ hiển thị công việc LỖI / KHÔNG TỒN TẠI", "Chỉ hiển thị công việc HỢP LỆ"],
+                t("filter_mode_label", lang),
+                options=[t("filter_all", lang), t("filter_errors", lang), t("filter_valid", lang)],
                 horizontal=True,
                 key="inspect_filter_mode"
             )
@@ -147,39 +146,36 @@ def render_inspection_view(lang: str):
                 sec_valid = sec["valid_count"]
                 sec_error = sec["error_count"]
 
-                # Badge description
-                status_badge = "🟢 Toàn bộ hợp lệ" if sec_error == 0 else f"🔴 {sec_error} mã lỗi"
-                expander_label = f"📁 {sec_title}  ({sec_total} công việc | {status_badge})"
+                status_badge = t("all_valid_badge", lang) if sec_error == 0 else t("error_badge", lang, count=sec_error)
+                expander_label = f"📁 {sec_title}  ({sec_total} {t('jobs_count_label', lang)} | {status_badge})"
 
-                # Auto-expand if there are errors
                 is_expanded = (sec_error > 0)
 
                 with st.expander(expander_label, expanded=is_expanded):
                     items = sec["items"]
-                    if filter_mode == "Chỉ hiển thị công việc LỖI / KHÔNG TỒN TẠI":
+                    if filter_mode == t("filter_errors", lang):
                         filtered_items = [it for it in items if it["status"] != "VALID"]
-                    elif filter_mode == "Chỉ hiển thị công việc HỢP LỆ":
+                    elif filter_mode == t("filter_valid", lang):
                         filtered_items = [it for it in items if it["status"] == "VALID"]
                     else:
                         filtered_items = items
 
                     if not filtered_items:
-                        st.info("Không có dòng công việc nào phù hợp với bộ lọc đã chọn.")
+                        st.info(t("no_matching_jobs", lang))
                     else:
                         table_data = []
                         for it in filtered_items:
                             is_err = it["status"] != "VALID"
-                            status_icon = "❌ Không có trong kho" if is_err else "✅ Hợp lệ"
+                            status_icon = t("status_not_found_icon", lang) if is_err else t("status_valid_icon", lang)
                             table_data.append({
                                 t("th_stt", lang): it["stt"],
-                                "Dòng Excel": it["row_index"],
+                                t("th_excel_row", lang): it["row_index"],
                                 t("th_code_in_file", lang): it["raw_code"],
                                 t("th_code_normalized", lang): it["norm_code"],
                                 t("th_name_in_file", lang): it["name_in_file"],
                                 t("th_repo_name", lang): it["repo_name"] or "—",
                                 t("th_check_status", lang): status_icon
                             })
-                            # Prepare for report
                             export_rows.append({
                                 "Hạng mục công trình": sec_title,
                                 "STT": it["stt"],
@@ -194,7 +190,7 @@ def render_inspection_view(lang: str):
                         df_sec = pd.DataFrame(table_data)
                         st.dataframe(df_sec, use_container_width=True, hide_index=True)
 
-            # EXPORT INSPECTION REPORT BUTTON
+            # EXPORT INSPECTION REPORT BUTTON WITH 1CM BOTTOM SPACING
             if export_rows:
                 st.divider()
                 rep_out = io.BytesIO()
@@ -203,6 +199,7 @@ def render_inspection_view(lang: str):
                     df_rep.to_excel(writer, sheet_name='Bao_Cao_Kiem_Tra', index=False)
                 rep_out.seek(0)
 
+                st.markdown('<div style="margin-top: 1rem; margin-bottom: 1cm; padding-bottom: 0.5cm;">', unsafe_allow_html=True)
                 st.download_button(
                     label=f"📥 {t('btn_export_inspect_report', lang)}",
                     data=rep_out,
@@ -210,3 +207,4 @@ def render_inspection_view(lang: str):
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     key="dl_btn_inspect_report"
                 )
+                st.markdown('</div>', unsafe_allow_html=True)
