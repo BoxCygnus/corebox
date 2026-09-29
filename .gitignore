@@ -17,7 +17,8 @@ data/*.sqlite
 # Streamlit
 .streamlit/secrets.toml
 
-# IDE
+# IDE & Tools
 .vscode/
 .idea/
 *.swp
+.wrangler/

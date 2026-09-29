@@ -14,6 +14,7 @@ def build_pages_app():
     # Collect all python source files to bundle
     files_to_bundle = [
         "app.py",
+        "auth.py",
         "config.py",
         "i18n.py",
         "database.py",
