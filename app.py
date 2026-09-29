@@ -34,7 +34,7 @@ st.markdown(get_custom_css(), unsafe_allow_html=True)
 # -----------------------------------------------------------------
 c_nav = st.container()
 with c_nav:
-    st.markdown('<div id="corebox-nav-anchor"></div>', unsafe_allow_html=True)
+    st.markdown('<div id="corebox-nav-anchor" style="display:none;"></div>', unsafe_allow_html=True)
     col_h1, col_h2, col_h3, col_h4, col_h5, col_h6, col_h7, col_h8 = st.columns(8)
     with col_h1:
         if st.button("nav_home", key="btn_nav_home", help="nav_home"):

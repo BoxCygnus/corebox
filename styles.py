@@ -42,11 +42,13 @@ def get_custom_css() -> str:
         pointer-events: none !important;
     }
 
-    /* HIDE HIDDEN SPA NAVIGATION CONTROLLER BUTTONS */
-    div[data-testid="stVerticalBlock"]:has(#corebox-nav-anchor),
-    div.element-container:has(#corebox-nav-anchor),
-    div:has(> div > #corebox-nav-anchor),
+    /* HIDE HIDDEN SPA NAVIGATION CONTROLLER BUTTONS SAFELY */
     div[data-testid="stHorizontalBlock"]:has(button[title^="nav_"]),
+    div[data-testid="stHorizontalBlock"]:has(button[title^="lang_"]),
+    div[data-testid="stHorizontalBlock"]:has(button[title^="act_"]),
+    .stButton:has(button[title^="nav_"]),
+    .stButton:has(button[title^="lang_"]),
+    .stButton:has(button[title^="act_"]),
     button[title^="nav_"],
     button[title^="lang_"],
     button[title^="act_"] {
