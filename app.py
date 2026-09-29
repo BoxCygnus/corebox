@@ -78,9 +78,12 @@ with c_nav:
 # -----------------------------------------------------------------
 # Handle URL Query Parameters (for initial deep links / bookmarking)
 # -----------------------------------------------------------------
-q_page = st.query_params.get("page")
-if q_page and q_page in ["home", "repo", "inspect", "users", "login"]:
-    st.session_state["current_page"] = q_page
+if "current_page" not in st.session_state:
+    q_page = st.query_params.get("page")
+    if q_page and q_page in ["home", "repo", "inspect", "users", "login"]:
+        st.session_state["current_page"] = q_page
+    else:
+        st.session_state["current_page"] = "home"
 
 q_lang = st.query_params.get("lang")
 if q_lang and q_lang in ["vi", "en"]:
@@ -89,9 +92,18 @@ if q_lang and q_lang in ["vi", "en"]:
 q_action = st.query_params.get("action")
 if q_action in ["google_login", "login"]:
     st.session_state["current_page"] = "login"
+    try:
+        del st.query_params["action"]
+    except Exception:
+        pass
 elif q_action == "logout":
     logout_user()
     st.session_state["current_page"] = "home"
+    st.query_params["page"] = "home"
+    try:
+        del st.query_params["action"]
+    except Exception:
+        pass
 
 # Initialize Session Defaults
 if "lang" not in st.session_state:

@@ -148,7 +148,7 @@ def render_login_view(lang: str):
         if btn_quick_admin:
             login_user(config.ADMIN_EMAIL, "Box (Admin)")
             st.session_state["current_page"] = "home"
-            st.success(t("msg_login_admin_success", lang))
+            st.query_params["page"] = "home"
             st.rerun()
 
         st.markdown(f"""
@@ -184,15 +184,10 @@ def render_login_view(lang: str):
             if submit_google:
                 if input_email and "@" in input_email:
                     clean_email = input_email.strip().lower()
-                    user = login_user(clean_email)
-                    if clean_email == config.ADMIN_EMAIL.strip().lower():
-                        st.session_state["current_page"] = "home"
-                        st.success(t("msg_login_admin_success", lang))
-                        st.rerun()
-                    else:
-                        st.session_state["current_page"] = "home"
-                        st.info(t("msg_login_user_pending", lang))
-                        st.rerun()
+                    login_user(clean_email)
+                    st.session_state["current_page"] = "home"
+                    st.query_params["page"] = "home"
+                    st.rerun()
                 else:
                     st.error("Vui lòng nhập định dạng email hợp lệ (vd: yourname@gmail.com)!" if lang == "vi" else "Please enter a valid email address (e.g. yourname@gmail.com)!")
 
