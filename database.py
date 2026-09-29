@@ -1,7 +1,10 @@
 import os
 import sqlite3
 import datetime
-import requests
+try:
+    import requests
+except Exception:
+    requests = None
 from typing import List, Dict, Any, Optional, Tuple
 import config
 
@@ -11,9 +14,15 @@ class Database:
             config.CLOUDFLARE_ACCOUNT_ID
             and config.CLOUDFLARE_D1_DATABASE_ID
             and config.CLOUDFLARE_API_TOKEN
+            and requests is not None
         )
         if not self.use_d1:
-            os.makedirs(os.path.dirname(config.DB_PATH), exist_ok=True)
+            db_dir = os.path.dirname(config.DB_PATH)
+            if db_dir:
+                try:
+                    os.makedirs(db_dir, exist_ok=True)
+                except Exception:
+                    pass
         self.init_db()
 
     def get_backend_name(self) -> str:

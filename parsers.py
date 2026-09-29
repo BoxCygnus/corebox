@@ -3,7 +3,11 @@ import re
 import openpyxl
 from typing import List, Dict, Any, Tuple, Optional
 import docx
-import pdfplumber
+
+try:
+    import pdfplumber
+except ImportError:
+    pdfplumber = None
 
 # Regular expression to match standard or short work codes:
 # e.g. AB.123, AF.1234, AK.55555, AB12345
@@ -214,6 +218,9 @@ def extract_from_pdf(file_bytes: bytes, filename: str) -> List[Dict[str, str]]:
     Trích xuất bảng từ PDF:
     Dùng pdfplumber để trích xuất các bảng, bỏ qua văn bản ngoài bảng.
     """
+    if pdfplumber is None:
+        raise RuntimeError("Trích xuất PDF chưa được hỗ trợ trên trình duyệt này. Vui lòng chuyển đổi sang tệp Excel (.xlsx) hoặc Word (.docx).")
+
     records = []
     seen_codes = set()
 

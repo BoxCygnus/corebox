@@ -1,8 +1,10 @@
 import os
-from dotenv import load_dotenv
 
-# Load environment variables from .env file if available
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    pass
 
 # Application Settings
 APP_NAME = "COREBOX"
