@@ -48,7 +48,41 @@
 
 ---
 
-## 🛠️ Cài Đặt & Khởi Chạy
+## 🌐 Triển Khai Trực Tiếp Lên Tên Miền Miễn Phí `*.pages.dev` (Cloudflare Pages)
+
+Ứng dụng **COREBOX** đã được đóng gói sẵn sàng để chạy trực tiếp trên nền tảng **Cloudflare Pages**, cho phép người dùng truy cập mọi lúc mọi nơi qua đường link dạng:
+👉 **`https://<ten-du-an-cua-ban>.pages.dev`**  
+*(Hoàn toàn miễn phí, có chứng chỉ SSL HTTPS, máy chủ chạy 24/7 không cần mở máy tính cá nhân).*
+
+### Các Bước Triển Khai Qua GitHub:
+1. **Đưa mã nguồn lên GitHub:**
+   ```powershell
+   git add .
+   git commit -m "San sang cho Cloudflare Pages .pages.dev"
+   git push origin main
+   ```
+2. **Kết nối Cloudflare Pages:**
+   - Đăng nhập vào [Cloudflare Dashboard](https://dash.cloudflare.com/).
+   - Vào mục **Workers & Pages** (hoặc **Compute**) ➔ Chọn tab **Pages** ➔ Bấm **Create application** ➔ **Connect to Git**.
+   - Chọn kho GitHub của bạn (ví dụ: `corebox`).
+3. **Cấu hình bản build:**
+   - **Project name:** `corebox` (hoặc tên tùy thích, đường link sẽ là `https://corebox.pages.dev`).
+   - **Production branch:** `main`
+   - **Framework preset:** `None`
+   - **Build command:** `py build_pages.py` (hoặc để trống vì thư mục `public/` đã được build sẵn).
+   - **Build output directory:** `public`
+   - Bấm **Save and Deploy**.
+4. **Hoàn tất:** Sau khoảng 30 giây, website của bạn sẽ hoạt động chính thức trên toàn cầu tại địa chỉ:
+   ```
+   https://corebox.pages.dev
+   ```
+
+### Xem Trước Bản Cloudflare Pages Cục Bộ:
+Nhấp đúp chuột vào file:
+- [`preview_pages_local.bat`](file:///e:/OneDrive%20-%20Bac%20Giang/Desktop/3.%20BQLDA/10.%20Project%20Corebox/preview_pages_local.bat)  
+Trình duyệt sẽ tự động mở `http://localhost:8080` để bạn kiểm tra giao diện và tính năng của bản build Cloudflare Pages.
+
+---
 
 ### Cách 1: Chạy Cục Bộ (Local)
 Nhấp đúp chuột vào tệp `run_local.bat` hoặc chạy lệnh sau trong PowerShell / CMD:
