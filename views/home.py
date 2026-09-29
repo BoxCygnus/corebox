@@ -43,7 +43,7 @@ def render_home_view(lang: str):
 </div>""")
         st.write("")
         safe_html(f"""<div style="text-align: center;">
-<a href="?page=repo&lang={lang}" target="_self" style="
+<a href="?page=repo&lang={lang}" onclick="return window.coreboxNav('repo', '{lang}', event)" target="_self" style="
 display: block;
 width: 100%;
 padding: 0.55rem 1rem;
@@ -68,7 +68,7 @@ transition: all 0.2s ease;
 </div>""")
         st.write("")
         safe_html(f"""<div style="text-align: center;">
-<a href="?page=inspect&lang={lang}" target="_self" style="
+<a href="?page=inspect&lang={lang}" onclick="return window.coreboxNav('inspect', '{lang}', event)" target="_self" style="
 display: block;
 width: 100%;
 padding: 0.55rem 1rem;
@@ -94,7 +94,7 @@ transition: all 0.2s ease;
         st.write("")
         if is_admin():
             safe_html(f"""<div style="text-align: center;">
-<a href="?page=users&lang={lang}" target="_self" style="
+<a href="?page=users&lang={lang}" onclick="return window.coreboxNav('users', '{lang}', event)" target="_self" style="
 display: block;
 width: 100%;
 padding: 0.55rem 1rem;

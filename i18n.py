@@ -67,6 +67,14 @@ TRANSLATIONS = {
         "admin_access_hint": "Vui lòng đăng nhập với tài khoản Admin để truy cập khu vực này.",
         "role_engineer": "Kỹ sư",
         "role_pending": "Chờ duyệt",
+        "google_login_title": "Đăng nhập tài khoản Google",
+        "google_login_desc": "Sử dụng tài khoản Gmail hoặc Google Workspace để truy cập vào hệ thống Corebox.",
+        "enter_google_email": "Nhập địa chỉ Email Google:",
+        "btn_continue_google": "Tiếp tục với Google",
+        "msg_login_admin_success": "Đăng nhập thành công với quyền Quản trị viên (Admin)!",
+        "msg_login_user_pending": "Đã ghi nhận tài khoản Google! Tài khoản của bạn đang trong hàng đợi chờ Admin phê duyệt.",
+        "btn_switch_google": "Đăng nhập tài khoản Google khác",
+        "btn_cancel": "Đóng",
         
         # Tools: Data Repository
         "repo_title": "Kho dữ liệu công việc",
@@ -233,6 +241,14 @@ TRANSLATIONS = {
         "admin_access_hint": "Please sign in with an Administrator account to access this area.",
         "role_engineer": "Engineer",
         "role_pending": "Pending Approval",
+        "google_login_title": "Sign In with Google Account",
+        "google_login_desc": "Use your Gmail or Google Workspace account to access the Corebox system.",
+        "enter_google_email": "Enter your Google Email:",
+        "btn_continue_google": "Continue with Google",
+        "msg_login_admin_success": "Signed in successfully with Administrator (Admin) privileges!",
+        "msg_login_user_pending": "Google account recorded! Your account is in the queue pending Admin approval.",
+        "btn_switch_google": "Sign in with another Google account",
+        "btn_cancel": "Close",
         
         # Tools: Data Repository
         "repo_title": "Work Code Data Repository",

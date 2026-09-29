@@ -37,7 +37,7 @@ def build_pages_app():
         else:
             print(f"Warning: File not found: {full_path}")
 
-    files_json = json.dumps(bundle_dict, ensure_ascii=False)
+    files_json = json.dumps(bundle_dict, ensure_ascii=False).replace("<", "\\u003c")
 
     html_content = f"""<!DOCTYPE html>
 <html lang="vi">
@@ -57,6 +57,39 @@ def build_pages_app():
       color: #f1f5f9;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       overflow-x: hidden;
+    }}
+    [data-testid="stStatusWidget"],
+    .stStatusWidget,
+    [data-testid="stToolbarActions"],
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"],
+    #MainMenu,
+    .stDeployButton {{
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      height: 0 !important;
+      width: 0 !important;
+      pointer-events: none !important;
+    }}
+    div[data-testid="stVerticalBlock"]:has(#corebox-nav-anchor),
+    div.element-container:has(#corebox-nav-anchor),
+    div:has(> div > #corebox-nav-anchor),
+    div[data-testid="stHorizontalBlock"]:has(button[title^="nav_"]),
+    button[title^="nav_"],
+    button[title^="lang_"],
+    button[title^="act_"] {{
+      position: fixed !important;
+      left: -9999px !important;
+      top: -9999px !important;
+      width: 0 !important;
+      height: 0 !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+      pointer-events: auto !important;
     }}
     #loading-screen {{
       position: fixed;
@@ -121,6 +154,57 @@ def build_pages_app():
   <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.73.1/build/stlite.js"></script>
   <script>
     const bundledFiles = {files_json};
+
+    function findBtn(name) {{
+      const btns = document.querySelectorAll('button');
+      for (const b of btns) {{
+        if (b.title === name || (b.innerText && b.innerText.trim() === name)) return b;
+      }}
+      return null;
+    }}
+
+    window.coreboxNav = function(page, lang, e) {{
+      if (e && e.preventDefault) e.preventDefault();
+      const url = new URL(window.location);
+      if (page) url.searchParams.set("page", page);
+      if (lang) url.searchParams.set("lang", lang);
+      window.history.pushState({{}}, "", url);
+      const btn = findBtn('nav_' + page);
+      if (btn) {{
+        btn.click();
+        return false;
+      }}
+      window.location.href = url.toString();
+      return false;
+    }};
+
+    window.coreboxLang = function(newLang, e) {{
+      if (e && e.preventDefault) e.preventDefault();
+      const url = new URL(window.location);
+      url.searchParams.set("lang", newLang);
+      window.history.pushState({{}}, "", url);
+      const btn = findBtn('lang_' + newLang);
+      if (btn) {{
+        btn.click();
+        return false;
+      }}
+      window.location.href = url.toString();
+      return false;
+    }};
+
+    window.coreboxAction = function(action, e) {{
+      if (e && e.preventDefault) e.preventDefault();
+      const url = new URL(window.location);
+      url.searchParams.set("action", action);
+      window.history.pushState({{}}, "", url);
+      const btn = findBtn('act_' + action);
+      if (btn) {{
+        btn.click();
+        return false;
+      }}
+      window.location.href = url.toString();
+      return false;
+    }};
 
     window.addEventListener("load", async () => {{
       const loadStatus = document.getElementById("load-status");

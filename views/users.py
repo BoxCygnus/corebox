@@ -81,7 +81,10 @@ def render_users_view(lang: str):
                                 db.delete_user(u_email)
                                 st.rerun()
                     else:
-                        st.badge(t("badge_protected", lang), icon="🔒")
+                        st.markdown(
+                            f'<span style="display:inline-flex; align-items:center; gap:4px; padding:0.25rem 0.65rem; border-radius:6px; background:rgba(56,189,248,0.12); color:#38bdf8; font-size:0.8rem; font-weight:600; border:1px solid rgba(56,189,248,0.25); white-space:nowrap;">🔒 {t("badge_protected", lang)}</span>',
+                            unsafe_allow_html=True
+                        )
 
     st.markdown("<br>", unsafe_allow_html=True)
 

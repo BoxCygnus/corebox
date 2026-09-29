@@ -22,3 +22,5 @@ data/*.sqlite
 .idea/
 *.swp
 .wrangler/
+chrome_temp_profile/
+

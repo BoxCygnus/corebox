@@ -24,6 +24,45 @@ def get_custom_css() -> str:
         visibility: hidden !important;
     }
 
+    /* HIDE TOP-RIGHT SPINNER / STATUS WIDGET / TOOLBAR COMPLETELY */
+    [data-testid="stStatusWidget"],
+    .stStatusWidget,
+    [data-testid="stToolbarActions"],
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"],
+    #MainMenu,
+    .stDeployButton,
+    div:has(> [data-testid="stStatusWidget"]),
+    div[data-testid="stStatusWidget"] * {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        pointer-events: none !important;
+    }
+
+    /* HIDE HIDDEN SPA NAVIGATION CONTROLLER BUTTONS */
+    div[data-testid="stVerticalBlock"]:has(#corebox-nav-anchor),
+    div.element-container:has(#corebox-nav-anchor),
+    div:has(> div > #corebox-nav-anchor),
+    div[data-testid="stHorizontalBlock"]:has(button[title^="nav_"]),
+    button[title^="nav_"],
+    button[title^="lang_"],
+    button[title^="act_"] {
+        position: fixed !important;
+        top: -9999px !important;
+        left: -9999px !important;
+        width: 0 !important;
+        height: 0 !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        pointer-events: auto !important;
+    }
+
     [data-testid="stAppViewContainer"] {
         padding-top: 0 !important;
         margin-top: 0 !important;
