@@ -37,6 +37,28 @@ def clean_str(val: Any) -> str:
     s = str(val).strip()
     return s
 
+def extract_first_unit(val: Any) -> str:
+    """
+    Ưu tiên lấy đơn vị tính đầu tiên tương đương nội dung công việc tổng quát.
+    Lọc bỏ các đơn vị phụ hoặc dòng giải thích chi tiết phía sau (ví dụ: '100m3\\nm3' -> '100m3').
+    """
+    if not val:
+        return ""
+    text = clean_str(val)
+    if not text:
+        return ""
+    # Tách theo dòng mới trước (thường gặp trong các ô excel xuống dòng cho từng chi tiết)
+    lines = [line.strip() for line in re.split(r'[\r\n]+', text) if line.strip()]
+    first_line = lines[0] if lines else text
+    
+    # Tách theo dấu phẩy, chấm phẩy, hoặc thanh đứng phân cách nhiều đơn vị
+    tokens = [t.strip() for t in re.split(r'[,;|\t]+', first_line) if t.strip()]
+    first_token = tokens[0] if tokens else first_line
+    
+    # Bỏ các ký tự gạch đầu dòng nếu có
+    first_token = re.sub(r'^[-–—•*+\s]+', '', first_token).strip()
+    return first_token
+
 def normalize_work_code(raw_code: str) -> str:
     """
     Quy chuẩn hóa Mã CV:
@@ -140,7 +162,7 @@ def extract_from_excel(file_bytes: bytes, filename: str) -> List[Dict[str, str]]
                         "code": norm_code,
                         "raw_code": raw_code,
                         "name": name,
-                        "unit": unit
+                        "unit": extract_first_unit(unit)
                     })
 
     return records
@@ -207,7 +229,7 @@ def extract_from_docx(file_bytes: bytes, filename: str) -> List[Dict[str, str]]:
                         "code": norm_code,
                         "raw_code": raw_code,
                         "name": name,
-                        "unit": unit
+                        "unit": extract_first_unit(unit)
                     })
 
     return records
@@ -277,7 +299,7 @@ def extract_from_pdf(file_bytes: bytes, filename: str) -> List[Dict[str, str]]:
                                 "code": norm_code,
                                 "raw_code": raw_code,
                                 "name": name,
-                                "unit": unit
+                                "unit": extract_first_unit(unit)
                             })
 
     return records

@@ -8,9 +8,9 @@ except Exception:
 
 # Application Settings
 APP_NAME = "COREBOX"
-APP_SUBTITLE = "Your project management, minus the manual hassle."
-APP_DESCRIPTION = "Data storage, automated inspection, and other supportive tools."
-APP_FOOTER = "Developed by Box"
+APP_SUBTITLE = "Đơn giản hóa hành trình chuyển đổi số của bạn"
+APP_DESCRIPTION = "Lưu trữ dữ liệu, kiểm tra tự động và các công cụ hỗ trợ."
+APP_FOOTER = "Phát triển bởi Box"
 
 # Admin Configuration
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "happyclone96@gmail.com").strip().lower()

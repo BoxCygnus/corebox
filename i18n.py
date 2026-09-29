@@ -4,7 +4,7 @@ TRANSLATIONS = {
     "vi": {
         # App brand & header
         "app_title": "Corebox",
-        "app_subtitle": "Quản lý dự án của bạn, loại bỏ hoàn toàn phiền toái thủ công.",
+        "app_subtitle": "Đơn giản hóa hành trình chuyển đổi số của bạn",
         "app_description": "Lưu trữ dữ liệu, kiểm tra tự động và các công cụ hỗ trợ.",
         "app_footer": "Phát triển bởi Box",
         
@@ -13,7 +13,7 @@ TRANSLATIONS = {
         "nav_tools": "Tools",
         "nav_admin": "Administrator",
         "nav_language": "Ngôn ngữ",
-        "nav_search": "Tìm kiếm...",
+        "nav_search_placeholder": "Tìm kiếm chức năng...",
         "nav_repo": "Kho dữ liệu",
         "nav_inspection": "Kiểm tra mã công việc",
         "nav_users": "Quản lý phân quyền",
@@ -57,7 +57,7 @@ TRANSLATIONS = {
         "msg_no_pending": "Hiện tại không có tài khoản nào đang chờ phê duyệt.",
         
         # Tools: Data Repository
-        "repo_title": "Kho Dữ Liệu Công Việc (Data Repository)",
+        "repo_title": "Kho Dữ Liệu Công Việc",
         "repo_desc": "Tự động trích xuất bảng Mã CV và Tên công việc từ file Word, Excel, PDF và chuẩn hóa định dạng XX.YYYYY.",
         "repo_admin_only_notice": "Lưu ý: Chỉ tài khoản Admin ({admin_email}) mới có quyền Tải lên, Cập nhật và Xóa file trong kho dữ liệu.",
         "repo_upload_section": "Tải lên tệp danh mục mới (.xlsx, .docx, .pdf)",
@@ -82,7 +82,7 @@ TRANSLATIONS = {
         "confirm_delete_file": "Bạn có chắc chắn muốn xóa file này cùng tất cả mã định mức tương ứng?",
         
         # Tools: Work Code Inspection
-        "inspect_title": "Kiểm tra mã công việc (Work Code Inspection)",
+        "inspect_title": "Kiểm tra mã công việc",
         "inspect_desc": "Kiểm tra tự động mã CV trên sheet 'ĐGTH' với Kho dữ liệu, phân nhóm lỗi theo từng Hạng mục công trình.",
         "inspect_temp_note": "🔒 Bảo mật: Tệp Excel tải lên chỉ được xử lý tạm thời trong phiên làm việc (Session) và được xóa sạch ngay sau khi xử lý xong, không lưu trữ trên máy chủ.",
         "inspect_sheet_rule": "⚠️ Quy tắc: File phải chứa sheet có tên chính xác là 'ĐGTH'. Hệ thống đọc công thức theo giá trị thực (data_only=True).",
@@ -120,14 +120,14 @@ TRANSLATIONS = {
         "home_card_admin_desc": "Hệ sinh thái phân quyền an toàn, phê duyệt tài khoản Google mới, bảo vệ toàn vẹn dữ liệu.",
         "btn_go": "Truy cập ngay",
         "database_status": "Trạng thái Cơ sở dữ liệu",
-        "db_cloudflare_d1": "Cloudflare D1 (Cloud Distributed)",
-        "db_sqlite_local": "SQLite Cục bộ (Sẵn sàng đồng bộ D1)",
+        "db_cloudflare_d1": "Cloudflare D1",
+        "db_sqlite_local": "SQLite Cục bộ",
     },
     
     "en": {
         # App brand & header
         "app_title": "Corebox",
-        "app_subtitle": "Your project management, minus the manual hassle.",
+        "app_subtitle": "Simplify your digital transformation journey",
         "app_description": "Data storage, automated inspection, and other supportive tools.",
         "app_footer": "Developed by Box",
         
@@ -136,7 +136,7 @@ TRANSLATIONS = {
         "nav_tools": "Tools",
         "nav_admin": "Administrator",
         "nav_language": "Language",
-        "nav_search": "Search...",
+        "nav_search_placeholder": "Search tools & functions...",
         "nav_repo": "Data Repository",
         "nav_inspection": "Work Code Inspection",
         "nav_users": "User Management",
@@ -243,8 +243,8 @@ TRANSLATIONS = {
         "home_card_admin_desc": "Secure role-based ecosystem, Google account approval queue, full integrity protection.",
         "btn_go": "Open Tool",
         "database_status": "Database Backend Status",
-        "db_cloudflare_d1": "Cloudflare D1 (Cloud Distributed)",
-        "db_sqlite_local": "Local SQLite (D1 Ready)",
+        "db_cloudflare_d1": "Cloudflare D1",
+        "db_sqlite_local": "Local SQLite",
     }
 }
 

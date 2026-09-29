@@ -5,7 +5,7 @@ import config
 from i18n import t
 from database import db
 from auth import is_admin, get_current_user_email
-from parsers import extract_from_excel, extract_from_docx, extract_from_pdf
+from parsers import extract_from_excel, extract_from_docx, extract_from_pdf, extract_first_unit
 
 def render_repository_view(lang: str):
     """
@@ -145,6 +145,8 @@ def render_repository_view(lang: str):
     records = db.get_work_codes(search=search_query or None, source_file=filter_source, limit=page_size, offset=offset)
 
     if records:
+        for r in records:
+            r["unit"] = extract_first_unit(r.get("unit", ""))
         df = pd.DataFrame(records)[["code", "raw_code", "name", "unit", "source_file"]]
         df.columns = ["Mã chuẩn hóa (XX.YYYYY)", "Mã gốc trong file", "Tên công việc", "ĐVT", "Tệp nguồn"]
         st.dataframe(df, use_container_width=True, hide_index=True)

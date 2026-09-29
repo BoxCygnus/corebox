@@ -12,14 +12,29 @@ def get_custom_css() -> str:
         color: #f1f5f9;
     }
 
-    [data-testid="stHeader"] {
+    /* ELIMINATE TOP GAP COMPLETELY (Pull content flush to very top) */
+    header[data-testid="stHeader"] {
         display: none !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        visibility: hidden !important;
     }
 
-    .main .block-container {
-        padding-top: 0.5rem !important;
-        padding-bottom: 3rem !important;
-        max-width: 1200px !important;
+    [data-testid="stAppViewContainer"] {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    .main, 
+    .main .block-container, 
+    [data-testid="stMainBlockContainer"], 
+    [data-testid="block-container"],
+    div[data-testid="stAppViewBlockContainer"] {
+        padding-top: 0.4rem !important;
+        margin-top: 0 !important;
+        max-width: 1240px !important;
     }
 
     /* ============================================================== */
@@ -28,8 +43,9 @@ def get_custom_css() -> str:
     .corebox-navbar-container {
         background-color: #0b0e17;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        padding: 0.5rem 0.2rem 0.8rem 0.2rem;
-        margin-bottom: 2rem;
+        padding: 0.5rem 0.2rem 0.75rem 0.2rem;
+        margin-top: 0 !important;
+        margin-bottom: 1.8rem;
         position: relative;
         z-index: 10000;
         width: 100%;
@@ -166,17 +182,66 @@ def get_custom_css() -> str:
         color: #ffffff !important;
     }
 
-    /* Right Group: Date/Time, Language, Google Avatar */
+    /* Bordered Search Box for Functions (Khung search có viền) */
+    .nav-search-bordered {
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 9999px;
+        padding: 0.32rem 0.95rem;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .nav-search-bordered:hover, .nav-search-bordered:focus-within {
+        border-color: #38bdf8;
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 14px rgba(56, 189, 248, 0.25);
+    }
+
+    .search-input-field {
+        background: transparent !important;
+        border: none !important;
+        outline: none !important;
+        color: #ffffff !important;
+        font-size: 0.88rem !important;
+        font-family: inherit !important;
+        width: 175px;
+        margin-left: 0.4rem;
+    }
+
+    .search-input-field::placeholder {
+        color: #94a3b8;
+        font-size: 0.85rem;
+    }
+
+    /* Quick jump search dropdown on hover/focus */
+    .search-dropdown-results {
+        display: none;
+        position: absolute;
+        top: 120%;
+        left: 0;
+        width: 250px;
+        background: #111827;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+        padding: 0.4rem 0;
+        z-index: 99999;
+    }
+
+    .nav-search-bordered:hover .search-dropdown-results,
+    .nav-search-bordered:focus-within .search-dropdown-results {
+        display: block;
+        animation: menuFadeIn 0.15s ease-out forwards;
+    }
+
+    /* Right Group: Search, Language, Google Avatar */
     .nav-right-zone {
         display: flex;
         align-items: center;
-        gap: 1.5rem;
-    }
-
-    .nav-date-time {
-        color: #94a3b8;
-        font-size: 0.85rem;
-        white-space: nowrap;
+        gap: 1.3rem;
     }
 
     .user-avatar-dot {
@@ -198,7 +263,7 @@ def get_custom_css() -> str:
     /* ============================================================== */
     .hero-box {
         text-align: center;
-        padding: 4rem 1rem 2.8rem 1rem;
+        padding: 3.5rem 1rem 2.8rem 1rem;
         max-width: 860px;
         margin: 0 auto;
     }
@@ -217,7 +282,7 @@ def get_custom_css() -> str:
         line-height: 1.1;
     }
 
-    /* Your project management, minus the manual hassle. */
+    /* Subtitle: Đơn giản hóa hành trình chuyển đổi số của bạn */
     .hero-subheadline {
         font-size: 1.55rem;
         font-weight: 600;
@@ -227,7 +292,7 @@ def get_custom_css() -> str:
         letter-spacing: -0.01em;
     }
 
-    /* Data storage, automated inspection, and other supportive tools. (kích cỡ nhỏ hơn xíu) */
+    /* Data storage, automated inspection, and other supportive tools. */
     .hero-small-desc {
         font-size: 1.05rem;
         color: #94a3b8;
