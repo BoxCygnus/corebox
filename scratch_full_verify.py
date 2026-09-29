@@ -7,6 +7,10 @@ import websockets
 import base64
 import os
 
+import sys
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 CHROME_PATH = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 ARTIFACT_DIR = r"C:\Users\Admin\.gemini\antigravity\brain\e2f7d4c2-32f5-45eb-9ee7-eee3f064169b"
 

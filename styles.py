@@ -43,16 +43,14 @@ def get_custom_css() -> str:
     }
 
     /* HIDE HIDDEN SPA NAVIGATION CONTROLLER BUTTONS SAFELY */
-    div[data-testid="stHorizontalBlock"]:has(button[title^="nav_"]),
-    div[data-testid="stHorizontalBlock"]:has(button[title^="lang_"]),
-    div[data-testid="stHorizontalBlock"]:has(button[title^="act_"]),
-    .stButton:has(button[title^="nav_"]),
-    .stButton:has(button[title^="lang_"]),
-    .stButton:has(button[title^="act_"]),
-    button[title^="nav_"],
-    button[title^="lang_"],
-    button[title^="act_"] {
-        position: fixed !important;
+    div[data-testid="stHorizontalBlock"]:has([class*="st-key-btn_nav_"]),
+    div[class*="st-key-btn_nav_"],
+    div[class*="st-key-btn_lang_"],
+    div[class*="st-key-btn_act_"],
+    div[class*="st-key-btn_nav_"] button,
+    div[class*="st-key-btn_lang_"] button,
+    div[class*="st-key-btn_act_"] button {
+        position: absolute !important;
         top: -9999px !important;
         left: -9999px !important;
         width: 0 !important;
