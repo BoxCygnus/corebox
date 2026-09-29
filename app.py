@@ -66,8 +66,8 @@ if not current_email:
 lang = st.session_state.get("lang", "vi")
 current_page = st.session_state.get("current_page", "home")
 
-# Render Top Hover Navigation Bar
-render_top_navbar(lang)
+# Render Top Hover Navigation Bar (passing active page and lang)
+render_top_navbar(lang, current_page)
 
 # Check user status
 if is_pending():

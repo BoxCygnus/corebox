@@ -10,6 +10,8 @@ def get_custom_css() -> str:
         font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
         background-color: #0b0e17 !important;
         color: #f1f5f9;
+        margin: 0;
+        padding: 0;
     }
 
     /* ELIMINATE TOP GAP COMPLETELY (Pull content flush to very top) */
@@ -27,14 +29,22 @@ def get_custom_css() -> str:
         margin-top: 0 !important;
     }
 
+    /* 2CM MARGIN LEFT & RIGHT AT 100% DISPLAY */
     .main, 
     .main .block-container, 
     [data-testid="stMainBlockContainer"], 
     [data-testid="block-container"],
     div[data-testid="stAppViewBlockContainer"] {
-        padding-top: 0.4rem !important;
+        padding-top: 0.2rem !important;
+        padding-left: 2cm !important;
+        padding-right: 2cm !important;
+        padding-bottom: 0 !important;
         margin-top: 0 !important;
-        max-width: 1240px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
 
     /* ============================================================== */
@@ -43,9 +53,9 @@ def get_custom_css() -> str:
     .corebox-navbar-container {
         background-color: #0b0e17;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        padding: 0.5rem 0.2rem 0.75rem 0.2rem;
+        padding: 0.45rem 0 0.65rem 0;
         margin-top: 0 !important;
-        margin-bottom: 1.8rem;
+        margin-bottom: 2rem;
         position: relative;
         z-index: 10000;
         width: 100%;
@@ -297,35 +307,8 @@ def get_custom_css() -> str:
         font-size: 1.05rem;
         color: #94a3b8;
         line-height: 1.6;
-        margin: 0 auto 2.2rem auto;
+        margin: 0 auto 1.5rem auto;
         max-width: 650px;
-    }
-
-    /* Yellow/Amber Pill Button */
-    .hero-cta-btn button,
-    .hero-cta-btn a {
-        background: #fbbf24 !important;
-        color: #0f172a !important;
-        font-weight: 700 !important;
-        font-size: 1.05rem !important;
-        border-radius: 9999px !important;
-        padding: 0.7rem 2.2rem !important;
-        border: none !important;
-        box-shadow: 0 4px 20px rgba(251, 191, 36, 0.3) !important;
-        transition: all 0.2s ease-in-out !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 0.5rem !important;
-        text-decoration: none !important;
-        cursor: pointer !important;
-    }
-
-    .hero-cta-btn button:hover,
-    .hero-cta-btn a:hover {
-        background: #f59e0b !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 25px rgba(251, 191, 36, 0.5) !important;
-        color: #0f172a !important;
     }
 
     /* Feature Cards */
@@ -413,15 +396,16 @@ def get_custom_css() -> str:
         color: #e2e8f0;
     }
 
-    /* Footer */
+    /* FOOTER SÁT MÉP DƯỚI 1CM Ở MỨC 100% */
     .corebox-footer {
         text-align: center;
-        padding: 3.5rem 0 1.5rem 0;
+        padding: 1rem 0 1cm 0 !important;
         color: #64748b;
-        font-size: 0.88rem;
+        font-size: 0.85rem;
         letter-spacing: 0.05em;
         border-top: 1px solid rgba(255, 255, 255, 0.06);
-        margin-top: 4rem;
+        margin-top: 3rem;
+        margin-bottom: 0 !important;
     }
     </style>
     """

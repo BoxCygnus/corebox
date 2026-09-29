@@ -16,7 +16,7 @@ TRANSLATIONS = {
         "nav_search_placeholder": "Tìm kiếm chức năng...",
         "nav_repo": "Kho dữ liệu",
         "nav_inspection": "Kiểm tra mã công việc",
-        "nav_users": "Quản lý phân quyền",
+        "nav_users": "Quản lý tài khoản",
         "nav_logout": "Đăng xuất",
         "nav_login": "Đăng nhập Google",
         "nav_guest": "Khách",
@@ -36,7 +36,7 @@ TRANSLATIONS = {
         "access_denied": "Từ chối truy cập! Chức năng này chỉ dành riêng cho Admin ({admin_email}).",
         
         # Admin / User Management
-        "user_mgmt_title": "Quản lý Phân quyền & Phê duyệt Tài khoản",
+        "user_mgmt_title": "Quản lý tài khoản",
         "user_mgmt_desc": "Duyệt hoặc từ chối các yêu cầu truy cập từ người dùng mới đăng nhập bằng Google.",
         "pending_users_section": "Danh sách tài khoản chờ duyệt ({count})",
         "approved_users_section": "Danh sách người dùng đã kích hoạt ({count})",
@@ -57,7 +57,7 @@ TRANSLATIONS = {
         "msg_no_pending": "Hiện tại không có tài khoản nào đang chờ phê duyệt.",
         
         # Tools: Data Repository
-        "repo_title": "Kho Dữ Liệu Công Việc",
+        "repo_title": "Kho dữ liệu công việc",
         "repo_desc": "Tự động trích xuất bảng Mã CV và Tên công việc từ file Word, Excel, PDF và chuẩn hóa định dạng XX.YYYYY.",
         "repo_admin_only_notice": "Lưu ý: Chỉ tài khoản Admin ({admin_email}) mới có quyền Tải lên, Cập nhật và Xóa file trong kho dữ liệu.",
         "repo_upload_section": "Tải lên tệp danh mục mới (.xlsx, .docx, .pdf)",
@@ -112,11 +112,11 @@ TRANSLATIONS = {
         
         # Home Dashboard Cards
         "home_quick_overview": "Tổng quan hệ thống",
-        "home_card_repo_title": "Kho Dữ Liệu Công Việc",
+        "home_card_repo_title": "Kho dữ liệu công việc",
         "home_card_repo_desc": "Lưu trữ tập trung, trích xuất thông minh từ Word, Excel, PDF và chuẩn hóa mã hiệu XX.YYYYY.",
         "home_card_inspect_title": "Kiểm tra mã công việc",
         "home_card_inspect_desc": "Tự động rà soát sheet ĐGTH, phân tách theo Hạng mục công trình, phát hiện ngay mã thiếu hoặc sai lệch.",
-        "home_card_admin_title": "Phân quyền & Phê duyệt",
+        "home_card_admin_title": "Quản lý tài khoản",
         "home_card_admin_desc": "Hệ sinh thái phân quyền an toàn, phê duyệt tài khoản Google mới, bảo vệ toàn vẹn dữ liệu.",
         "btn_go": "Truy cập ngay",
         "database_status": "Trạng thái Cơ sở dữ liệu",
@@ -139,7 +139,7 @@ TRANSLATIONS = {
         "nav_search_placeholder": "Search tools & functions...",
         "nav_repo": "Data Repository",
         "nav_inspection": "Work Code Inspection",
-        "nav_users": "User Management",
+        "nav_users": "Account Management",
         "nav_logout": "Logout",
         "nav_login": "Google Sign-In",
         "nav_guest": "Guest",
@@ -159,7 +159,7 @@ TRANSLATIONS = {
         "access_denied": "Access Denied! This feature is exclusively available to Admin ({admin_email}).",
         
         # Admin / User Management
-        "user_mgmt_title": "User Permissions & Approval Queue",
+        "user_mgmt_title": "Account Management",
         "user_mgmt_desc": "Approve or reject access requests from new users signing in via Google.",
         "pending_users_section": "Pending Approval Queue ({count})",
         "approved_users_section": "Active Users ({count})",
@@ -239,7 +239,7 @@ TRANSLATIONS = {
         "home_card_repo_desc": "Centralized storage, smart table extraction from Word, Excel, PDF, and XX.YYYYY standardization.",
         "home_card_inspect_title": "Work Code Inspection",
         "home_card_inspect_desc": "Automated scanning of sheet ĐGTH, grouping by section, instant detection of missing or mismatched codes.",
-        "home_card_admin_title": "Access & Approvals",
+        "home_card_admin_title": "Account Management",
         "home_card_admin_desc": "Secure role-based ecosystem, Google account approval queue, full integrity protection.",
         "btn_go": "Open Tool",
         "database_status": "Database Backend Status",

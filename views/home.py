@@ -17,26 +17,24 @@ def render_home_view(lang: str):
     """
     Renders Main Dashboard screen:
     - Corebox (In đậm, font chữ nổi bật, kích thước to)
-    - Your project management, minus the manual hassle.
+    - Đơn giản hóa hành trình chuyển đổi số của bạn (Simplify your digital transformation journey)
     - Data storage, automated inspection, and other supportive tools. (kích cỡ nhỏ hơn xíu)
-    - Tất cả nội dung UI hiển thị trừ Tên phần mềm Corebox đều có bản dịch tiếng Việt khi đổi ngôn ngữ.
+    - Nút Khám phá công cụ đã được loại bỏ.
+    - Footer cách mép dưới 1cm.
     """
-    # Hero Box Layout
+    # Hero Box Layout (Bỏ nút Khám phá công cụ)
     safe_html(f"""<div class="hero-box">
 <div class="hero-brand-name">Corebox</div>
 <div class="hero-subheadline">{t('app_subtitle', lang)}</div>
 <div class="hero-small-desc">{t('app_description', lang)}</div>
-<div class="hero-cta-btn">
-<a href="?page=inspect" target="_self">{t('explore_tools', lang)}</a>
-</div>
 </div>""")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Feature Action Cards (Song ngữ đầy đủ)
+    # Feature Action Cards (Song ngữ đầy đủ, giữ nguyên tham số lang)
     col1, col2, col3 = st.columns(3)
 
-    # Card 1: Data Repository
+    # Card 1: Data Repository (Kho dữ liệu công việc)
     with col1:
         safe_html(f"""<div class="feature-card">
 <div class="feature-icon">📁</div>
@@ -45,7 +43,7 @@ def render_home_view(lang: str):
 </div>""")
         st.write("")
         safe_html(f"""<div style="text-align: center;">
-<a href="?page=repo" target="_self" style="
+<a href="?page=repo&lang={lang}" target="_self" style="
 display: block;
 width: 100%;
 padding: 0.55rem 1rem;
@@ -61,7 +59,7 @@ transition: all 0.2s ease;
 ">🚀 {t('btn_go', lang)}: {t('nav_repo', lang)}</a>
 </div>""")
 
-    # Card 2: Work Code Inspection
+    # Card 2: Work Code Inspection (Kiểm tra mã công việc)
     with col2:
         safe_html(f"""<div class="feature-card">
 <div class="feature-icon">🔍</div>
@@ -70,7 +68,7 @@ transition: all 0.2s ease;
 </div>""")
         st.write("")
         safe_html(f"""<div style="text-align: center;">
-<a href="?page=inspect" target="_self" style="
+<a href="?page=inspect&lang={lang}" target="_self" style="
 display: block;
 width: 100%;
 padding: 0.55rem 1rem;
@@ -86,7 +84,7 @@ transition: all 0.2s ease;
 ">⚡ {t('btn_go', lang)}: {t('nav_inspection', lang)}</a>
 </div>""")
 
-    # Card 3: User Management
+    # Card 3: User Management (Quản lý tài khoản)
     with col3:
         safe_html(f"""<div class="feature-card">
 <div class="feature-icon">👥</div>
@@ -96,7 +94,7 @@ transition: all 0.2s ease;
         st.write("")
         if is_admin():
             safe_html(f"""<div style="text-align: center;">
-<a href="?page=users" target="_self" style="
+<a href="?page=users&lang={lang}" target="_self" style="
 display: block;
 width: 100%;
 padding: 0.55rem 1rem;
@@ -127,7 +125,7 @@ cursor: not-allowed;
 ">🔒 {t('nav_users', lang)} (Admin)</span>
 </div>""")
 
-    # Footer (Song ngữ)
+    # Footer (Cách mép dưới màn hình 1cm)
     safe_html(f"""<div class="corebox-footer">
 {t('app_footer', lang)} • Cloudflare & Python Architecture • Version 2.0
 </div>""")
