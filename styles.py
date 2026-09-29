@@ -17,7 +17,7 @@ def get_custom_css() -> str:
     }
 
     .main .block-container {
-        padding-top: 1rem !important;
+        padding-top: 0.5rem !important;
         padding-bottom: 3rem !important;
         max-width: 1200px !important;
     }
@@ -28,10 +28,12 @@ def get_custom_css() -> str:
     .corebox-navbar-container {
         background-color: #0b0e17;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        padding: 0.6rem 0.5rem;
+        padding: 0.5rem 0.2rem 0.8rem 0.2rem;
         margin-bottom: 2rem;
         position: relative;
-        z-index: 1000;
+        z-index: 10000;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .nav-bar-row {
@@ -44,32 +46,52 @@ def get_custom_css() -> str:
     .nav-left-zone {
         display: flex;
         align-items: center;
-        gap: 2rem;
+        gap: 2.2rem;
     }
 
-    /* Corebox Brand: In đậm và to hơn */
-    .brand-logo-text {
+    /* Corebox Brand: Icon 📦 tách riêng, to hơn chữ 1 chút */
+    .brand-link-wrapper {
+        display: inline-flex !important;
+        align-items: center !important;
+        text-decoration: none !important;
+        border: none !important;
+        outline: none !important;
+        cursor: pointer !important;
+        gap: 0.4rem;
+        padding-right: 0.8rem;
+    }
+
+    .brand-icon-box {
+        font-size: 1.85rem !important;
+        line-height: 1 !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease;
+    }
+
+    .brand-link-wrapper:hover .brand-icon-box {
+        transform: scale(1.1);
+    }
+
+    .brand-title-text {
         font-size: 1.45rem !important;
         font-weight: 800 !important;
         color: #ffffff !important;
-        text-decoration: none !important;
         letter-spacing: -0.02em;
-        cursor: pointer;
-        border: none !important;
-        outline: none !important;
-        background: transparent !important;
+        line-height: 1 !important;
         transition: color 0.15s ease;
     }
 
-    .brand-logo-text:hover {
+    .brand-link-wrapper:hover .brand-title-text {
         color: #38bdf8 !important;
     }
 
-    /* Nav Dropdown on HOVER (Không cần bấm vào) */
+    /* Nav Dropdown on HOVER (Không cần bấm vào, chỉ chuột là mở) */
     .nav-dropdown-item {
         position: relative;
         display: inline-block;
-        padding: 0.4rem 0;
+        padding: 0.45rem 0;
     }
 
     .nav-dropdown-label {
@@ -97,7 +119,7 @@ def get_custom_css() -> str:
         color: #94a3b8;
     }
 
-    /* Dropdown Menu Container: Hiện ra khi chỉ chuột vào (.nav-dropdown-item:hover) */
+    /* Dropdown Menu Container: Hiện ra khi hover (.nav-dropdown-item:hover) */
     .nav-dropdown-menu {
         display: none;
         position: absolute;
@@ -144,7 +166,7 @@ def get_custom_css() -> str:
         color: #ffffff !important;
     }
 
-    /* Right Group: Search, Date/Time, Language, Google Avatar */
+    /* Right Group: Date/Time, Language, Google Avatar */
     .nav-right-zone {
         display: flex;
         align-items: center;
@@ -155,16 +177,6 @@ def get_custom_css() -> str:
         color: #94a3b8;
         font-size: 0.85rem;
         white-space: nowrap;
-    }
-
-    .nav-user-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
-        color: #cbd5e1;
-        font-size: 0.95rem;
-        font-weight: 500;
     }
 
     .user-avatar-dot {
@@ -186,7 +198,7 @@ def get_custom_css() -> str:
     /* ============================================================== */
     .hero-box {
         text-align: center;
-        padding: 4.5rem 1rem 3rem 1rem;
+        padding: 4rem 1rem 2.8rem 1rem;
         max-width: 860px;
         margin: 0 auto;
     }
