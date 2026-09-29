@@ -37,6 +37,11 @@ def render_top_navbar(lang: str, current_page: str = "home"):
         status = current_user.get("status", "pending")
         role_display = "👑 ADMIN" if user_is_admin else ("🟢 ACTIVE" if status == "active" else "⏳ CHỜ DUYỆT")
 
+        if user_is_admin:
+            admin_dropdown_item = f'<a href="?page=users&lang={lang}" onclick="return window.coreboxNav(\'users\', \'{lang}\', event)" target="_self" class="nav-sub-link">👥 {t("nav_users", lang)}</a>'
+        else:
+            admin_dropdown_item = ""
+
         user_menu_html = f"""
         <div class="nav-dropdown-item">
           <span class="nav-dropdown-label" style="display:inline-flex; align-items:center; gap:0.5rem; background:rgba(255,255,255,0.04); padding:0.35rem 0.75rem; border-radius:9999px; border:1px solid rgba(255,255,255,0.1);">
@@ -49,7 +54,7 @@ def render_top_navbar(lang: str, current_page: str = "home"):
               <div style="font-weight: 600; color: #f1f5f9; margin-bottom: 3px;">{current_email}</div>
               <div style="color: #38bdf8; font-size: 0.75rem; font-weight: 700;">{role_display}</div>
             </div>
-            {f'<a href="?page=users&lang={lang}" onclick="return window.coreboxNav(\\'users\\', \\'{lang}\\', event)" target="_self" class="nav-sub-link">👥 {t("nav_users", lang)}</a>' if user_is_admin else ''}
+            {admin_dropdown_item}
             <a href="?page=login&lang={lang}" onclick="return window.coreboxNav('login', '{lang}', event)" target="_self" class="nav-sub-link">🌐 {t('btn_switch_google', lang)}</a>
             <a href="?page={current_page}&lang={lang}&action=logout" onclick="return window.coreboxAction('logout', event)" target="_self" class="nav-sub-link" style="color: #f87171 !important;">🚪 {t('nav_logout', lang)}</a>
           </div>
