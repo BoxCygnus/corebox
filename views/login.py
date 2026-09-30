@@ -151,6 +151,7 @@ def render_login_view(lang: str):
                 align-items: center;
                 border-radius: 9999px;
                 overflow: hidden;
+                background-color: #131314;
               "></div>
             </div>
           </div>

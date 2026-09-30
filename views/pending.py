@@ -26,13 +26,11 @@ def render_pending_view(lang: str):
         unsafe_allow_html=True
     )
 
-    col1, col2, col3 = st.columns([1.5, 2, 1.5])
-    with col2:
-        subc1, subc2 = st.columns(2)
-        with subc1:
-            if st.button(f"🔄 {t('btn_reload_page', lang)}", key="btn_reload_pending", use_container_width=True):
-                st.rerun()
-        with subc2:
-            if st.button(f"🚪 {t('nav_logout', lang)}", key="btn_logout_pending", use_container_width=True):
-                logout_user()
-                st.rerun()
+    col_left, col_btn1, col_btn2, col_right = st.columns([1.2, 1.3, 1.3, 1.2])
+    with col_btn1:
+        if st.button(f"🔄 {t('btn_reload_page', lang)}", key="btn_reload_pending", use_container_width=True):
+            st.rerun()
+    with col_btn2:
+        if st.button(f"🚪 {t('nav_logout', lang)}", key="btn_logout_pending", use_container_width=True):
+            logout_user()
+            st.rerun()

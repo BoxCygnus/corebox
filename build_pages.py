@@ -47,9 +47,10 @@ def build_pages_app():
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>COREBOX — Project Management</title>
+  <title>Corebox — Đơn giản hóa công việc của bạn.</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.73.1/build/stlite.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.73.1/build/stlite.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     body, html {{
@@ -62,7 +63,7 @@ def build_pages_app():
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       overflow-x: hidden;
     }}
-    /* HIDE STLITE LOADING TOASTS (Hình 4), REACT TOASTIFY & STREAMLIT STATUS WIDGET */
+    /* HIDE STLITE LOADING TOASTS, REACT TOASTIFY & STREAMLIT STATUS WIDGET */
     .Toastify__toast-container,
     .Toastify__toast,
     .Toastify__toast--default,
@@ -135,7 +136,11 @@ def build_pages_app():
       background: transparent !important;
       border: none !important;
       box-shadow: none !important;
-      color-scheme: light !important;
+      color-scheme: dark !important;
+    }}
+    #google-signin-btn-slot {{
+      transform: scale(1.08);
+      transform-origin: center;
     }}
     #loading-screen {{
       position: fixed;
@@ -147,9 +152,12 @@ def build_pages_app():
       background: radial-gradient(circle at 50% 30%, #1e293b 0%, #0b0f19 80%);
       z-index: 99999;
       transition: opacity 0.5s ease-out;
+      padding: 1.5rem;
+      text-align: center;
+      box-sizing: border-box;
     }}
     .glow-title {{
-      font-size: 3.5rem;
+      font-size: clamp(2.4rem, 6vw, 3.5rem);
       font-weight: 800;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -161,10 +169,12 @@ def build_pages_app():
     }}
     .glow-subtitle {{
       color: #94a3b8;
-      font-size: 1.1rem;
+      font-size: clamp(1rem, 3.5vw, 1.25rem);
+      font-weight: 500;
       margin-bottom: 2rem;
       text-align: center;
-      max-width: 500px;
+      max-width: 520px;
+      line-height: 1.5;
     }}
     .spinner-ring {{
       width: 48px;
@@ -189,15 +199,14 @@ def build_pages_app():
 </head>
 <body>
   <div id="loading-screen">
-    <div class="glow-title">📦 COREBOX</div>
-    <div class="glow-subtitle">"Your project management, minus the manual hassle."</div>
+    <div class="glow-title">📦 Corebox</div>
+    <div class="glow-subtitle">Đơn giản hóa công việc của bạn.</div>
     <div class="spinner-ring"></div>
     <div class="load-text" id="load-status">Khởi tạo môi trường Cloudflare Pages...</div>
   </div>
 
   <div id="root"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.73.1/build/stlite.js"></script>
   <script>
     const bundledFiles = {files_json};
 
@@ -447,7 +456,7 @@ def build_pages_app():
           if (target && target.getAttribute("data-rendered-locale") !== gsiLocale) {{
             target.innerHTML = "";
             window.google.accounts.id.renderButton(target, {{
-              theme: "outline",
+              theme: "filled_black",
               size: "large",
               shape: "pill",
               text: "continue_with",
@@ -462,6 +471,18 @@ def build_pages_app():
         console.error("Google Identity Services error:", e);
       }}
     }};
+
+    async function waitForStlite() {{
+      let attempts = 0;
+      while ((typeof stlite === "undefined" || !window.stlite) && attempts < 100) {{
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }}
+      if (typeof stlite === "undefined" && !window.stlite) {{
+        throw new Error("Không thể tải thư viện Stlite. Vui lòng kiểm tra kết nối mạng và tải lại trang.");
+      }}
+      return window.stlite || stlite;
+    }}
 
     setInterval(() => {{
       const target = document.getElementById("google-signin-btn-slot");
@@ -480,6 +501,8 @@ def build_pages_app():
       loadStatus.innerText = "Đang tải thư viện Python & Công cụ QLDA...";
 
       try {{
+        const stliteLib = await waitForStlite();
+
         // Pre-mount sync: restore active session from localStorage
         try {{
           const activeSess = localStorage.getItem("corebox_active_user");
@@ -528,7 +551,7 @@ def build_pages_app():
           console.error("Pre-mount sync error:", e);
         }}
 
-        stlite.mount({{
+        stliteLib.mount({{
           requirements: [
             "openpyxl",
             "python-docx",
@@ -559,7 +582,7 @@ def build_pages_app():
         }}, 300);
 
       }} catch (err) {{
-        loadStatus.innerText = "Lỗi khởi chạy: " + err.message;
+        loadStatus.innerHTML = "Lỗi khởi chạy: " + err.message + '<br><button onclick="window.location.reload()" style="margin-top:12px;padding:8px 18px;border-radius:8px;background:#38bdf8;color:#0b0f19;font-weight:700;border:none;cursor:pointer;">Tải lại trang</button>';
         console.error(err);
       }}
     }});

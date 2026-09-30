@@ -79,37 +79,39 @@ def render_users_view(lang: str):
             is_root_admin = (u_email == config.ADMIN_EMAIL)
 
             with st.container(border=True):
-                col_info, col_actions = st.columns([7, 3], vertical_alignment="center")
-                with col_info:
-                    badge_str = t("badge_root_admin", lang) if is_root_admin else (t("badge_admin", lang) if u_role == "admin" else t("badge_user", lang))
-                    if is_root_admin:
-                        st.markdown(f"**{u_name}** — *{badge_str}*")
-                    else:
+                if not is_root_admin:
+                    col_info, col_btn1, col_btn2 = st.columns([6, 2, 2], vertical_alignment="center")
+                    with col_info:
+                        badge_str = t("badge_admin", lang) if u_role == "admin" else t("badge_user", lang)
                         st.markdown(f"**{u_name}** (`{u_email}`) — *{badge_str}*")
-                    formatted_updated = format_datetime_by_lang(u.get('updated_at', u.get('created_at', '')), lang)
-                    st.caption(f"{t('last_updated_prefix', lang)}: {formatted_updated}")
-                with col_actions:
-                    if not is_root_admin:
-                        btn_c1, btn_c2 = st.columns(2)
-                        with btn_c1:
-                            if st.button(t("btn_suspend", lang), key=f"btn_lock_{idx}_{u_email}", use_container_width=True):
-                                db.update_user_status(u_email, "pending")
-                                st.session_state["user_sync_js"] = f"""
-                                if (window.parent && window.parent.coreboxUpdateUserStatus) {{
-                                    window.parent.coreboxUpdateUserStatus('{u_email}', 'pending');
-                                }}
-                                """
-                                st.rerun()
-                        with btn_c2:
-                            if st.button(t("btn_delete", lang), key=f"btn_del_{idx}_{u_email}", use_container_width=True):
-                                db.delete_user(u_email)
-                                st.session_state["user_sync_js"] = f"""
-                                if (window.parent && window.parent.coreboxDeleteUser) {{
-                                    window.parent.coreboxDeleteUser('{u_email}');
-                                }}
-                                """
-                                st.rerun()
-                    else:
+                        formatted_updated = format_datetime_by_lang(u.get('updated_at', u.get('created_at', '')), lang)
+                        st.caption(f"{t('last_updated_prefix', lang)}: {formatted_updated}")
+                    with col_btn1:
+                        if st.button(t("btn_suspend", lang), key=f"btn_lock_{idx}_{u_email}", use_container_width=True):
+                            db.update_user_status(u_email, "pending")
+                            st.session_state["user_sync_js"] = f"""
+                            if (window.parent && window.parent.coreboxUpdateUserStatus) {{
+                                window.parent.coreboxUpdateUserStatus('{u_email}', 'pending');
+                            }}
+                            """
+                            st.rerun()
+                    with col_btn2:
+                        if st.button(t("btn_delete", lang), key=f"btn_del_{idx}_{u_email}", use_container_width=True):
+                            db.delete_user(u_email)
+                            st.session_state["user_sync_js"] = f"""
+                            if (window.parent && window.parent.coreboxDeleteUser) {{
+                                window.parent.coreboxDeleteUser('{u_email}');
+                            }}
+                            """
+                            st.rerun()
+                else:
+                    col_info, col_lock = st.columns([8, 2], vertical_alignment="center")
+                    with col_info:
+                        badge_str = t("badge_root_admin", lang)
+                        st.markdown(f"**{u_name}** — *{badge_str}*")
+                        formatted_updated = format_datetime_by_lang(u.get('updated_at', u.get('created_at', '')), lang)
+                        st.caption(f"{t('last_updated_prefix', lang)}: {formatted_updated}")
+                    with col_lock:
                         st.markdown(
                             f'<span style="display:inline-flex; align-items:center; gap:4px; padding:0.25rem 0.65rem; border-radius:6px; background:rgba(56,189,248,0.12); color:#38bdf8; font-size:0.8rem; font-weight:600; border:1px solid rgba(56,189,248,0.25); white-space:nowrap;">🔒 {t("badge_protected", lang)}</span>',
                             unsafe_allow_html=True
