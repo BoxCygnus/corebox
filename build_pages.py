@@ -69,8 +69,9 @@ def build_pages_app():
     .Toastify__toast--info,
     [class*="Toastify"],
     .stlite-message,
-    [data-testid="stStatusWidget"],
-    .stStatusWidget,
+    header,
+    .stAppHeader,
+    [data-testid="stHeader"],
     [data-testid="stToolbarActions"],
     [data-testid="stToolbar"],
     [data-testid="stDecoration"],
@@ -83,6 +84,33 @@ def build_pages_app():
       width: 0 !important;
       pointer-events: none !important;
       overflow: hidden !important;
+    }}
+    .corebox-navbar-container {{
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100vw !important;
+      height: 52px !important;
+      z-index: 999999 !important;
+      background-color: #0b0e17 !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
+      padding-left: 2cm !important;
+      padding-right: 2cm !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      margin: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      box-sizing: border-box !important;
+    }}
+    .main .block-container,
+    [data-testid="stMainBlockContainer"],
+    [data-testid="block-container"] {{
+      padding-top: 64px !important;
+      padding-left: 2cm !important;
+      padding-right: 2cm !important;
     }}
     div[data-testid="stHorizontalBlock"]:has([class*="st-key-btn_nav_"]),
     div[class*="st-key-btn_nav_"],
@@ -202,6 +230,7 @@ def build_pages_app():
       const url = new URL(window.location);
       if (page) url.searchParams.set("page", page);
       if (lang) url.searchParams.set("lang", lang);
+      url.searchParams.delete("u");
       window.history.replaceState({{}}, "", url);
       
       const btn = findBtn('nav_' + page);
@@ -209,11 +238,17 @@ def build_pages_app():
         btn.click();
         return false;
       }}
-      setTimeout(() => {{
+      let retries = 0;
+      const interval = setInterval(() => {{
+        retries++;
         const rBtn = findBtn('nav_' + page);
-        if (rBtn) rBtn.click();
-        else window.location.href = url.toString();
-      }}, 50);
+        if (rBtn) {{
+          clearInterval(interval);
+          rBtn.click();
+        }} else if (retries > 30) {{
+          clearInterval(interval);
+        }}
+      }}, 30);
       return false;
     }};
 
@@ -224,6 +259,7 @@ def build_pages_app():
       }}
       const url = new URL(window.location);
       url.searchParams.set("lang", newLang);
+      url.searchParams.delete("u");
       window.history.replaceState({{}}, "", url);
 
       const target = document.getElementById("google-signin-btn-slot");
@@ -238,11 +274,17 @@ def build_pages_app():
         btn.click();
         return false;
       }}
-      setTimeout(() => {{
+      let retries = 0;
+      const interval = setInterval(() => {{
+        retries++;
         const rBtn = findBtn('lang_' + newLang);
-        if (rBtn) rBtn.click();
-        else window.location.href = url.toString();
-      }}, 50);
+        if (rBtn) {{
+          clearInterval(interval);
+          rBtn.click();
+        }} else if (retries > 30) {{
+          clearInterval(interval);
+        }}
+      }}, 30);
       return false;
     }};
 
@@ -253,8 +295,8 @@ def build_pages_app():
       }}
       const url = new URL(window.location);
       url.searchParams.set("action", action);
+      url.searchParams.delete("u");
       if (action === "logout") {{
-        url.searchParams.delete("u");
         url.searchParams.delete("g_token");
         try {{ localStorage.removeItem("corebox_active_user"); }} catch(e) {{}}
       }}
@@ -264,11 +306,17 @@ def build_pages_app():
         btn.click();
         return false;
       }}
-      setTimeout(() => {{
+      let retries = 0;
+      const interval = setInterval(() => {{
+        retries++;
         const rBtn = findBtn('act_' + action);
-        if (rBtn) rBtn.click();
-        else window.location.href = url.toString();
-      }}, 50);
+        if (rBtn) {{
+          clearInterval(interval);
+          rBtn.click();
+        }} else if (retries > 30) {{
+          clearInterval(interval);
+        }}
+      }}, 30);
       return false;
     }};
 
@@ -410,7 +458,7 @@ def build_pages_app():
               shape: "pill",
               text: "continue_with",
               logo_alignment: "left",
-              width: 340,
+              width: 380,
               locale: gsiLocale
             }});
             target.setAttribute("data-rendered-locale", gsiLocale);

@@ -15,7 +15,11 @@ def get_custom_css() -> str:
     }
 
     /* ELIMINATE TOP GAP COMPLETELY (Pull content flush to very top) */
-    header[data-testid="stHeader"] {
+    header,
+    .stAppHeader,
+    [data-testid="stHeader"],
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"] {
         display: none !important;
         height: 0 !important;
         min-height: 0 !important;
@@ -100,13 +104,13 @@ def get_custom_css() -> str:
         margin-top: 0 !important;
     }
 
-    /* 2CM MARGIN LEFT & RIGHT AT 100% DISPLAY */
+    /* 2CM MARGIN LEFT & RIGHT AT 100% DISPLAY + 64PX PADDING TOP FOR FIXED NAVBAR */
     .main, 
     .main .block-container, 
     [data-testid="stMainBlockContainer"], 
     [data-testid="block-container"],
     div[data-testid="stAppViewBlockContainer"] {
-        padding-top: 0 !important;
+        padding-top: 64px !important;
         padding-left: 2cm !important;
         padding-right: 2cm !important;
         padding-bottom: 0 !important;
@@ -119,20 +123,27 @@ def get_custom_css() -> str:
     }
 
     /* ============================================================== */
-    /* CUSTOM TOP NAVBAR (Frozen / Sticky at top, flush under browser bar)*/
+    /* CUSTOM TOP NAVBAR (Frozen / Fixed at top, flush under browser bar like MapleTools) */
     /* ============================================================== */
     .corebox-navbar-container {
-        position: sticky !important;
+        position: fixed !important;
         top: 0 !important;
-        z-index: 10000;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100vw !important;
+        height: 52px !important;
+        z-index: 999999 !important;
         background-color: #0b0e17 !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        padding-top: 0rem !important; /* Căn sát mép trên trình duyệt Edge */
-        padding-bottom: 0.55rem !important;
-        margin-top: 0 !important;
-        margin-bottom: 1.2rem !important;
-        width: 100%;
-        box-sizing: border-box;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
+        padding-left: 2cm !important;
+        padding-right: 2cm !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        box-sizing: border-box !important;
     }
 
     .nav-bar-row {

@@ -96,10 +96,23 @@ def render_login_view(lang: str):
             font-weight: 700;
             color: #ffffff;
             letter-spacing: -0.02em;
-            margin-bottom: 1.8rem;
+            margin-bottom: 0.35rem;
             text-align: center;
           ">
-            {t('login_welcome_back', lang)}
+            {"Chào mừng bạn đến với" if lang == "vi" else "Welcome to"}
+          </div>
+          <div style="
+            font-size: 2.75rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 35px rgba(56, 189, 248, 0.4);
+            margin-bottom: 2rem;
+            text-align: center;
+          ">
+            Corebox
           </div>
 
           <!-- Official Google Identity Services Container -->
@@ -113,22 +126,33 @@ def render_login_view(lang: str):
           </div>
           
           <div class="google-btn-wrapper" style="
-            margin: 1rem 0 2rem 0;
-            min-height: 54px;
+            margin: 1.2rem 0 2.2rem 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             width: 100%;
           ">
-            <!-- Google Sign-in Slot with Pill Shape styling like Image 5 -->
-            <div id="google-signin-btn-slot" style="
-              min-width: 340px;
-              min-height: 52px;
-              display: flex;
+            <!-- Glowing gradient border pill wrapper around Google login button -->
+            <div style="
+              display: inline-flex;
+              align-items: center;
               justify-content: center;
-              filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.4));
-            "></div>
+              padding: 3px;
+              border-radius: 9999px;
+              background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+              box-shadow: 0 0 30px rgba(56, 189, 248, 0.45), 0 8px 24px rgba(0, 0, 0, 0.6);
+            ">
+              <div id="google-signin-btn-slot" style="
+                min-width: 380px;
+                min-height: 52px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                border-radius: 9999px;
+                overflow: hidden;
+              "></div>
+            </div>
           </div>
 
           <!-- Terms & Privacy Policy footer notice with Google policy links -->

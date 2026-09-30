@@ -88,11 +88,12 @@ with c_nav:
 # -----------------------------------------------------------------
 # Handle URL Query Parameters & Session Synchronization
 # -----------------------------------------------------------------
-# Ensure current user is synchronized from session_state or query_params 'u'
+# Ensure query_params NEVER leak email into the browser URL
+# -----------------------------------------------------------------
 current_email = get_current_user_email()
-if current_email and "u" not in st.query_params:
+if "u" in st.query_params:
     try:
-        st.query_params["u"] = current_email
+        del st.query_params["u"]
     except Exception:
         pass
 
@@ -124,6 +125,8 @@ elif q_action == "logout":
     try:
         st.query_params["page"] = "home"
         del st.query_params["action"]
+        if "u" in st.query_params:
+            del st.query_params["u"]
     except Exception:
         pass
 
@@ -138,7 +141,11 @@ if g_token:
     if user:
         st.session_state["current_page"] = "home"
         st.query_params["page"] = "home"
-        st.query_params["u"] = user["email"]
+        if "u" in st.query_params:
+            try:
+                del st.query_params["u"]
+            except Exception:
+                pass
         st.rerun()
 
 # Initialize Session Defaults

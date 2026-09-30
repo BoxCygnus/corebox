@@ -10,6 +10,26 @@ from database import db
 from auth import is_admin, get_current_user_email
 from parsers import extract_from_excel, extract_from_docx, extract_from_pdf, extract_first_unit
 
+@st.cache_data(show_spinner=False)
+def generate_repo_excel_export(search_query: str | None, filter_source: str | None, lang: str) -> bytes:
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        raw_rows = db.get_work_codes(search=search_query or None, source_file=filter_source, limit=10000, offset=0)
+        df_all = pd.DataFrame(raw_rows)
+        if not df_all.empty:
+            for idx_row in range(len(df_all)):
+                df_all.at[idx_row, "unit"] = extract_first_unit(df_all.at[idx_row, "unit"])
+            df_all = df_all[["code", "raw_code", "name", "unit", "source_file"]]
+            df_all.columns = [
+                t("col_norm_code", lang),
+                t("col_raw_code", lang),
+                t("col_work_name", lang),
+                t("col_unit", lang),
+                t("col_source_file", lang)
+            ]
+            df_all.to_excel(writer, sheet_name='Kho_Du_Lieu', index=False)
+    return output.getvalue()
+
 def render_repository_view(lang: str):
     """
     Renders Kho Dữ Liệu (Data Repository) view:
@@ -176,29 +196,12 @@ def render_repository_view(lang: str):
                     t("col_source_file", lang)
                 ]
                 st.dataframe(df, use_container_width=True, hide_index=True)
-
-                # Export button
-                output = io.BytesIO()
-                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                    df_all = pd.DataFrame(db.get_work_codes(search=search_query or None, source_file=filter_source, limit=10000, offset=0))
-                    if not df_all.empty:
-                        for idx_row in range(len(df_all)):
-                            df_all.at[idx_row, "unit"] = extract_first_unit(df_all.at[idx_row, "unit"])
-                        df_all = df_all[["code", "raw_code", "name", "unit", "source_file"]]
-                        df_all.columns = [
-                            t("col_norm_code", lang),
-                            t("col_raw_code", lang),
-                            t("col_work_name", lang),
-                            t("col_unit", lang),
-                            t("col_source_file", lang)
-                        ]
-                        df_all.to_excel(writer, sheet_name='Kho_Du_Lieu', index=False)
-                output.seek(0)
-                
+                # Export button (cached to prevent blocking WebAssembly event loop on page navigation)
+                excel_bytes = generate_repo_excel_export(search_query or None, filter_source, lang)
                 st.markdown('<div style="margin-top: 1rem; margin-bottom: 0.5cm;">', unsafe_allow_html=True)
                 st.download_button(
                     label=f"📥 {t('btn_export_repo', lang)}",
-                    data=output,
+                    data=excel_bytes,
                     file_name="corebox_kho_du_lieu.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     key="dl_btn_repo_xlsx"
