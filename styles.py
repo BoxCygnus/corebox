@@ -74,17 +74,33 @@ def get_custom_css() -> str:
         pointer-events: auto !important;
     }
 
-    /* Google Sign-in dark background without white borders */
-    #google-signin-btn-slot,
-    .google-btn-wrapper,
-    .g_id_signin,
+    /* Google Sign-in button: clean white background with sleek blue border */
+    #google-signin-btn-slot {
+        background-color: #ffffff !important;
+        border: 2px solid #0ea5e9 !important;
+        border-radius: 9999px !important;
+        box-shadow: 0 4px 18px rgba(14, 165, 233, 0.25) !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        overflow: hidden !important;
+        transition: all 0.2s ease !important;
+        box-sizing: border-box !important;
+    }
+
+    #google-signin-btn-slot:hover {
+        border-color: #38bdf8 !important;
+        box-shadow: 0 6px 24px rgba(56, 189, 248, 0.42) !important;
+    }
+
     #google-signin-btn-slot iframe,
     .g_id_signin iframe,
     iframe[src*="accounts.google.com"] {
-        background: transparent !important;
+        background: #ffffff !important;
         border: none !important;
-        box-shadow: none !important;
+        border-radius: 9999px !important;
         color-scheme: light !important;
+        display: block !important;
     }
 
     /* Disabled Navigation Link for Guest & Pending Accounts */

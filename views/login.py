@@ -126,33 +126,36 @@ def render_login_view(lang: str):
           </div>
           
           <div class="google-btn-wrapper" style="
-            margin: 1.2rem 0 2.2rem 0;
+            margin: 1.5rem 0 2.2rem 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             width: 100%;
           ">
-            <!-- Glowing gradient border pill wrapper around Google login button -->
-            <div style="
-              display: inline-flex;
-              align-items: center;
-              justify-content: center;
-              padding: 3px;
-              border-radius: 9999px;
-              background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
-              box-shadow: 0 0 30px rgba(56, 189, 248, 0.45), 0 8px 24px rgba(0, 0, 0, 0.6);
-            ">
-              <div id="google-signin-btn-slot" style="
-                min-width: 380px;
-                min-height: 52px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                border-radius: 9999px;
-                overflow: hidden;
-                background-color: #131314;
-              "></div>
+            <div id="google-signin-btn-slot"
+                 class="g_id_signin"
+                 data-type="standard"
+                 data-shape="pill"
+                 data-theme="outline"
+                 data-text="continue_with"
+                 data-size="large"
+                 data-logo_alignment="left"
+                 data-width="400"
+                 style="
+                   min-width: 320px;
+                   max-width: 100%;
+                   display: inline-flex;
+                   justify-content: center;
+                   align-items: center;
+                   border-radius: 9999px;
+                   background-color: #ffffff;
+                   border: 2px solid #0ea5e9;
+                   box-shadow: 0 4px 18px rgba(14, 165, 233, 0.25);
+                   overflow: hidden;
+                   transition: all 0.2s ease;
+                   box-sizing: border-box;
+                 ">
             </div>
           </div>
 

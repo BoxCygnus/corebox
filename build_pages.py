@@ -126,21 +126,33 @@ def build_pages_app():
       pointer-events: auto !important;
       border: none !important;
     }}
-    /* Google Sign-in dark background without white borders */
-    #google-signin-btn-slot,
-    .google-btn-wrapper,
-    .g_id_signin,
+    /* Google Sign-in button: clean white background with sleek blue border */
+    #google-signin-btn-slot {{
+      background-color: #ffffff !important;
+      border: 2px solid #0ea5e9 !important;
+      border-radius: 9999px !important;
+      box-shadow: 0 4px 18px rgba(14, 165, 233, 0.25) !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      overflow: hidden !important;
+      transition: all 0.2s ease !important;
+      box-sizing: border-box !important;
+      min-width: 320px !important;
+      max-width: 100% !important;
+    }}
+    #google-signin-btn-slot:hover {{
+      border-color: #38bdf8 !important;
+      box-shadow: 0 6px 24px rgba(56, 189, 248, 0.42) !important;
+    }}
     #google-signin-btn-slot iframe,
     .g_id_signin iframe,
     iframe[src*="accounts.google.com"] {{
-      background: transparent !important;
+      background: #ffffff !important;
       border: none !important;
-      box-shadow: none !important;
-      color-scheme: dark !important;
-    }}
-    #google-signin-btn-slot {{
-      transform: scale(1.08);
-      transform-origin: center;
+      border-radius: 9999px !important;
+      color-scheme: light !important;
+      display: block !important;
     }}
     #loading-screen {{
       position: fixed;
@@ -455,13 +467,14 @@ def build_pages_app():
           const target = document.getElementById("google-signin-btn-slot");
           if (target && target.getAttribute("data-rendered-locale") !== gsiLocale) {{
             target.innerHTML = "";
+            const btnWidth = Math.min(400, Math.max(280, Math.floor(window.innerWidth - 48)));
             window.google.accounts.id.renderButton(target, {{
-              theme: "filled_black",
+              theme: "outline",
               size: "large",
               shape: "pill",
               text: "continue_with",
               logo_alignment: "left",
-              width: 380,
+              width: btnWidth,
               locale: gsiLocale
             }});
             target.setAttribute("data-rendered-locale", gsiLocale);
