@@ -142,73 +142,7 @@ def render_top_navbar(lang: str, current_page: str = "home"):
 <!-- User / Guest Pill & Avatar -->
 {user_menu_html}
 </div>
-</div>
-</div>
-<script>
-(function() {{
-  function findBtn(name) {{
-    let keyElem = document.querySelector('.st-key-btn_' + name);
-    if (keyElem) {{
-      let b = keyElem.querySelector('button');
-      if (b) return b;
-    }}
-    let allBtns = document.querySelectorAll('button');
-    for (let b of allBtns) {{
-      if (b.innerText && b.innerText.trim() === name) return b;
-    }}
-    return null;
-  }}
-
-  window.coreboxNav = function(page, lang, e) {{
-    if (e && e.preventDefault) e.preventDefault();
-    let url = new URL(window.location.href);
-    if (page) url.searchParams.set("page", page);
-    if (lang) url.searchParams.set("lang", lang);
-    window.history.pushState({{}}, "", url.toString());
-
-    let btn = findBtn('nav_' + page);
-    if (btn) {{
-      btn.click();
-      return false;
-    }}
-    window.location.href = url.toString();
-    return false;
-  }};
-
-  window.coreboxLang = function(newLang, e) {{
-    if (e && e.preventDefault) e.preventDefault();
-    let url = new URL(window.location.href);
-    url.searchParams.set("lang", newLang);
-    window.history.pushState({{}}, "", url.toString());
-
-    let btn = findBtn('lang_' + newLang);
-    if (btn) {{
-      btn.click();
-      return false;
-    }}
-    window.location.href = url.toString();
-    return false;
-  }};
-
-  window.coreboxAction = function(action, e) {{
-    if (e && e.preventDefault) e.preventDefault();
-    let url = new URL(window.location.href);
-    url.searchParams.set("action", action);
-    if (action === "logout") {{
-      url.searchParams.delete("u");
-    }}
-    window.history.pushState({{}}, "", url.toString());
-
-    let btn = findBtn('act_' + action);
-    if (btn) {{
-      btn.click();
-      return false;
-    }}
-    window.location.href = url.toString();
-    return false;
-  }};
-}})();
-</script>"""
+</div>"""
 
     if hasattr(st, "html"):
         st.html(navbar_html)

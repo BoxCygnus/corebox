@@ -86,29 +86,23 @@ def build_pages_app():
       overflow: hidden !important;
     }}
     .corebox-navbar-container {{
-      position: fixed !important;
+      position: sticky !important;
       top: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      width: 100vw !important;
-      height: 52px !important;
       z-index: 999999 !important;
       background-color: #0b0e17 !important;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
-      padding-left: 2cm !important;
-      padding-right: 2cm !important;
-      padding-top: 0 !important;
-      padding-bottom: 0 !important;
-      margin: 0 !important;
-      display: flex !important;
-      align-items: center !important;
+      padding-top: 0.45rem !important;
+      padding-bottom: 0.45rem !important;
+      margin-top: 0 !important;
+      margin-bottom: 1rem !important;
+      width: 100% !important;
       box-sizing: border-box !important;
     }}
     .main .block-container,
     [data-testid="stMainBlockContainer"],
     [data-testid="block-container"] {{
-      padding-top: 64px !important;
+      padding-top: 0 !important;
       padding-left: 2cm !important;
       padding-right: 2cm !important;
     }}
