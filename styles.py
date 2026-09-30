@@ -24,7 +24,13 @@ def get_custom_css() -> str:
         visibility: hidden !important;
     }
 
-    /* HIDE TOP-RIGHT SPINNER / STATUS WIDGET / TOOLBAR COMPLETELY */
+    /* HIDE STLITE LOADING TOASTS (Hình 4), REACT TOASTIFY & STREAMLIT STATUS WIDGET */
+    .Toastify__toast-container,
+    .Toastify__toast,
+    .Toastify__toast--default,
+    .Toastify__toast--info,
+    [class*="Toastify"],
+    .stlite-message,
     [data-testid="stStatusWidget"],
     .stStatusWidget,
     [data-testid="stToolbarActions"],
@@ -40,9 +46,10 @@ def get_custom_css() -> str:
         width: 0 !important;
         height: 0 !important;
         pointer-events: none !important;
+        overflow: hidden !important;
     }
 
-    /* HIDE HIDDEN SPA NAVIGATION CONTROLLER BUTTONS SAFELY */
+    /* HIDE HIDDEN SPA NAVIGATION CONTROLLER BUTTONS SAFELY (ALLOW JS .click()) */
     div[data-testid="stHorizontalBlock"]:has([class*="st-key-btn_nav_"]),
     div[class*="st-key-btn_nav_"],
     div[class*="st-key-btn_lang_"],
@@ -50,17 +57,37 @@ def get_custom_css() -> str:
     div[class*="st-key-btn_nav_"] button,
     div[class*="st-key-btn_lang_"] button,
     div[class*="st-key-btn_act_"] button {
-        position: absolute !important;
+        position: fixed !important;
         top: -9999px !important;
         left: -9999px !important;
-        width: 0 !important;
-        height: 0 !important;
-        opacity: 0 !important;
-        visibility: hidden !important;
+        width: 1px !important;
+        height: 1px !important;
+        opacity: 0.001 !important;
         overflow: hidden !important;
         margin: 0 !important;
         padding: 0 !important;
+        border: none !important;
         pointer-events: auto !important;
+    }
+
+    /* Google Sign-in dark background without white borders */
+    #google-signin-btn-slot,
+    .g_id_signin,
+    #google-signin-btn-slot iframe,
+    .g_id_signin iframe,
+    iframe[src*="accounts.google.com"] {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        color-scheme: dark !important;
+    }
+
+    /* Disabled Navigation Link for Guest & Pending Accounts */
+    .nav-sub-link-disabled {
+        opacity: 0.45 !important;
+        cursor: not-allowed !important;
+        pointer-events: none !important;
+        color: #64748b !important;
     }
 
     [data-testid="stAppViewContainer"] {

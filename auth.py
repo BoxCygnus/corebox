@@ -24,6 +24,21 @@ def get_current_user_email() -> Optional[str]:
     if "user_email" in st.session_state and st.session_state["user_email"]:
         return st.session_state["user_email"].strip().lower()
 
+    # Check URL query param 'u' to seamlessly retain login state across deep links & page reloads
+    try:
+        q_u = st.query_params.get("u")
+        if q_u and "@" in q_u:
+            norm_q_u = q_u.strip().lower()
+            user = db.get_user(norm_q_u)
+            if user:
+                st.session_state["user_email"] = norm_q_u
+                st.session_state["user_name"] = user.get("full_name", norm_q_u.split("@")[0])
+                st.session_state["user_role"] = user.get("role", "user")
+                st.session_state["user_status"] = user.get("status", "pending")
+                return norm_q_u
+    except Exception:
+        pass
+
     return None
 
 def get_current_user() -> Optional[Dict[str, Any]]:
@@ -39,6 +54,10 @@ def login_user(email: str, full_name: str = ""):
     st.session_state["user_name"] = user.get("full_name", email.split("@")[0])
     st.session_state["user_role"] = user.get("role", "user")
     st.session_state["user_status"] = user.get("status", "pending")
+    try:
+        st.query_params["u"] = email
+    except Exception:
+        pass
     return user
 
 def decode_and_verify_google_jwt(token: str) -> Optional[Dict[str, Any]]:
@@ -102,6 +121,12 @@ def logout_user():
     st.session_state.pop("user_name", None)
     st.session_state.pop("user_role", None)
     st.session_state.pop("user_status", None)
+    st.session_state.pop("user_picture", None)
+    try:
+        if "u" in st.query_params:
+            del st.query_params["u"]
+    except Exception:
+        pass
 
 def is_admin() -> bool:
     email = get_current_user_email()

@@ -87,7 +87,7 @@ TRANSLATIONS = {
         "login_email_placeholder": "Nhập địa chỉ Gmail của bạn...",
         "login_brand_subtitle": "Đơn giản hóa hành trình chuyển đổi số của bạn",
         "login_brand_desc": "Lưu trữ tập trung, trích xuất dữ liệu thông minh và chuẩn hóa mã hiệu công việc.",
-        "login_footnote": "Corebox là nền tảng số hóa quản trị dự án dành cho kỹ sư và ban QLDA.",
+        "login_footnote": "Corebox là nền tảng số hóa quản lý dự án dành cho kỹ sư.",
         
         # Tools: Data Repository
         "repo_title": "Kho dữ liệu công việc",

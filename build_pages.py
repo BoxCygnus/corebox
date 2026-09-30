@@ -60,6 +60,13 @@ def build_pages_app():
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       overflow-x: hidden;
     }}
+    /* HIDE STLITE LOADING TOASTS (Hình 4), REACT TOASTIFY & STREAMLIT STATUS WIDGET */
+    .Toastify__toast-container,
+    .Toastify__toast,
+    .Toastify__toast--default,
+    .Toastify__toast--info,
+    [class*="Toastify"],
+    .stlite-message,
     [data-testid="stStatusWidget"],
     .stStatusWidget,
     [data-testid="stToolbarActions"],
@@ -73,6 +80,7 @@ def build_pages_app():
       height: 0 !important;
       width: 0 !important;
       pointer-events: none !important;
+      overflow: hidden !important;
     }}
     div[data-testid="stHorizontalBlock"]:has([class*="st-key-btn_nav_"]),
     div[class*="st-key-btn_nav_"],
@@ -81,17 +89,28 @@ def build_pages_app():
     div[class*="st-key-btn_nav_"] button,
     div[class*="st-key-btn_lang_"] button,
     div[class*="st-key-btn_act_"] button {{
-      position: absolute !important;
+      position: fixed !important;
       left: -9999px !important;
       top: -9999px !important;
-      width: 0 !important;
-      height: 0 !important;
-      opacity: 0 !important;
-      visibility: hidden !important;
+      width: 1px !important;
+      height: 1px !important;
+      opacity: 0.001 !important;
       margin: 0 !important;
       padding: 0 !important;
       overflow: hidden !important;
       pointer-events: auto !important;
+      border: none !important;
+    }}
+    /* Google Sign-in dark background without white borders */
+    #google-signin-btn-slot,
+    .g_id_signin,
+    #google-signin-btn-slot iframe,
+    .g_id_signin iframe,
+    iframe[src*="accounts.google.com"] {{
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      color-scheme: dark !important;
     }}
     #loading-screen {{
       position: fixed;
@@ -203,6 +222,9 @@ def build_pages_app():
       if (e && e.preventDefault) e.preventDefault();
       const url = new URL(window.location);
       url.searchParams.set("action", action);
+      if (action === "logout") {{
+        url.searchParams.delete("u");
+      }}
       window.history.pushState({{}}, "", url);
       const btn = findBtn('act_' + action);
       if (btn) {{
@@ -233,7 +255,7 @@ def build_pages_app():
           const target = document.getElementById("google-signin-btn-slot");
           if (target && !target.hasChildNodes()) {{
             window.google.accounts.id.renderButton(target, {{
-              theme: "filled_blue",
+              theme: "filled_black",
               size: "large",
               shape: "rectangular",
               text: "continue_with",

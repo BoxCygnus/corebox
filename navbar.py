@@ -1,29 +1,42 @@
 import textwrap
 import streamlit as st
 import config
-from auth import get_current_user, get_current_user_email, is_admin
+from auth import get_current_user, get_current_user_email, is_admin, is_active, is_pending
 from i18n import t
 
 def render_top_navbar(lang: str, current_page: str = "home"):
     """
     Renders the custom pure hover navbar:
-    - 📦Corebox: Icon 📦 is separated, slightly larger than text.
+    - 📦Corebox: Icon 📦 is separated, slightly larger than text. Clicking always goes to home.
     - 'Tools ⌵' and 'Administrator ⌵': Hover dropdowns, no white borders, left-aligned.
-    - Bordered search box for functions/tools (Khung search có viền).
-    - Language switcher with hover dropdown: Pure text 'Vietnamese' and 'English' (no icons).
-    - Guest pill (Guest / Khách + 👤 avatar) with dropdown to Login when not logged in.
-    - User name + Avatar with dropdown to Switch Google Account / Logout when logged in.
-    - Client-side fast SPA navigation (< 50ms) without full browser reload.
+      * For Guest and Pending users: All functions are locked (🔒) and disabled.
+      * For Active users: Tools are accessible.
+      * For Admin: Both Tools and Administrator are accessible.
+    - Preserves user identity via 'u' query parameter on all links to prevent logout.
+    - Embedded fast SPA navigation (< 40ms) without full browser reload.
     """
     current_user = get_current_user()
     current_email = get_current_user_email()
     user_is_admin = is_admin()
+    user_is_active = is_active()
+    user_is_pending = is_pending()
+    user_is_guest = (current_user is None)
+
+    u_param = f"&u={current_email}" if current_email else ""
+
+    # Tools sub-items links
+    if user_is_active:
+        tools_repo_html = f'<a href="?page=repo&lang={lang}{u_param}" onclick="return window.coreboxNav(\'repo\', \'{lang}\', event)" target="_self" class="nav-sub-link">📁 {t("nav_repo", lang)}</a>'
+        tools_inspect_html = f'<a href="?page=inspect&lang={lang}{u_param}" onclick="return window.coreboxNav(\'inspect\', \'{lang}\', event)" target="_self" class="nav-sub-link">🔍 {t("nav_inspection", lang)}</a>'
+    else:
+        tools_repo_html = f'<span class="nav-sub-link nav-sub-link-disabled" title="Chức năng bị khóa">📁 {t("nav_repo", lang)} 🔒</span>'
+        tools_inspect_html = f'<span class="nav-sub-link nav-sub-link-disabled" title="Chức năng bị khóa">🔍 {t("nav_inspection", lang)} 🔒</span>'
 
     # Admin sub-item link
     if user_is_admin:
-        admin_link_html = f'<a href="?page=users&lang={lang}" onclick="return window.coreboxNav(\'users\', \'{lang}\', event)" target="_self" class="nav-sub-link">👥 {t("nav_users", lang)}</a>'
+        admin_link_html = f'<a href="?page=users&lang={lang}{u_param}" onclick="return window.coreboxNav(\'users\', \'{lang}\', event)" target="_self" class="nav-sub-link">👥 {t("nav_users", lang)}</a>'
     else:
-        admin_link_html = f'<span class="nav-sub-link" style="opacity:0.5; cursor:not-allowed;">🔒 {t("nav_users", lang)} ({t("nav_admin_badge", lang)})</span>'
+        admin_link_html = f'<span class="nav-sub-link nav-sub-link-disabled" title="Chức năng bị khóa">👥 {t("nav_users", lang)} 🔒</span>'
 
     # Current language text (Pure text: Vietnamese or English, no symbols)
     current_lang_display = "Vietnamese" if lang == "vi" else "English"
@@ -38,7 +51,7 @@ def render_top_navbar(lang: str, current_page: str = "home"):
         role_display = "👑 ADMIN" if user_is_admin else ("🟢 ACTIVE" if status == "active" else "⏳ CHỜ DUYỆT")
 
         if user_is_admin:
-            admin_dropdown_item = f'<a href="?page=users&lang={lang}" onclick="return window.coreboxNav(\'users\', \'{lang}\', event)" target="_self" class="nav-sub-link">👥 {t("nav_users", lang)}</a>'
+            admin_dropdown_item = f'<a href="?page=users&lang={lang}{u_param}" onclick="return window.coreboxNav(\'users\', \'{lang}\', event)" target="_self" class="nav-sub-link">👥 {t("nav_users", lang)}</a>'
         else:
             admin_dropdown_item = ""
 
@@ -55,8 +68,8 @@ def render_top_navbar(lang: str, current_page: str = "home"):
               <div style="color: #38bdf8; font-size: 0.75rem; font-weight: 700;">{role_display}</div>
             </div>
             {admin_dropdown_item}
-            <a href="?page=login&lang={lang}" onclick="return window.coreboxNav('login', '{lang}', event)" target="_self" class="nav-sub-link">🌐 {t('btn_switch_google', lang)}</a>
-            <a href="?page={current_page}&lang={lang}&action=logout" onclick="return window.coreboxAction('logout', event)" target="_self" class="nav-sub-link" style="color: #f87171 !important;">🚪 {t('nav_logout', lang)}</a>
+            <a href="?page=login&lang={lang}{u_param}" onclick="return window.coreboxNav('login', '{lang}', event)" target="_self" class="nav-sub-link">🌐 {t('btn_switch_google', lang)}</a>
+            <a href="?page=home&lang={lang}&action=logout" onclick="return window.coreboxAction('logout', event)" target="_self" class="nav-sub-link" style="color: #f87171 !important;">🚪 {t('nav_logout', lang)}</a>
           </div>
         </div>
         """
@@ -71,24 +84,34 @@ def render_top_navbar(lang: str, current_page: str = "home"):
           </span>
           <div class="nav-dropdown-menu" style="right: 0; left: auto; min-width: 170px;">
             <a href="?page=login&lang={lang}" onclick="return window.coreboxNav('login', '{lang}', event)" target="_self" class="nav-sub-link" style="color:#38bdf8 !important; font-weight:600;">➔ {t('nav_login_action', lang)}</a>
-            <a href="?page=home&lang={lang}" onclick="return window.coreboxNav('home', '{lang}', event)" target="_self" class="nav-sub-link">⚙ {t('nav_settings', lang)}</a>
           </div>
         </div>
         """
+
+    # Search Quick Links depending on permissions
+    search_links_html = ""
+    if user_is_active:
+        search_links_html += f'<div style="padding:0.4rem 1.1rem; font-size:0.75rem; color:#94a3b8; font-weight:600; text-transform:uppercase;">{t("nav_tools", lang)}</div>'
+        search_links_html += f'<a href="?page=repo&lang={lang}{u_param}" onclick="return window.coreboxNav(\'repo\', \'{lang}\', event)" target="_self" class="nav-sub-link">📁 {t("nav_repo", lang)}</a>'
+        search_links_html += f'<a href="?page=inspect&lang={lang}{u_param}" onclick="return window.coreboxNav(\'inspect\', \'{lang}\', event)" target="_self" class="nav-sub-link">🔍 {t("nav_inspection", lang)}</a>'
+        if user_is_admin:
+            search_links_html += f'<a href="?page=users&lang={lang}{u_param}" onclick="return window.coreboxNav(\'users\', \'{lang}\', event)" target="_self" class="nav-sub-link">👥 {t("nav_users", lang)}</a>'
+    else:
+        search_links_html = f'<div style="padding:0.6rem 1.1rem; font-size:0.8rem; color:#94a3b8;">🔒 Vui lòng đăng nhập để mở khóa tính năng</div>'
 
     # Build unindented HTML with instant SPA router script
     navbar_html = f"""<div class="corebox-navbar-container">
 <div class="nav-bar-row">
 <div class="nav-left-zone">
-<a href="?page=home&lang={lang}" onclick="return window.coreboxNav('home', '{lang}', event)" target="_self" class="brand-link-wrapper">
+<a href="?page=home&lang={lang}{u_param}" onclick="return window.coreboxNav('home', '{lang}', event)" target="_self" class="brand-link-wrapper">
 <span class="brand-icon-box">📦</span>
 <span class="brand-title-text">Corebox</span>
 </a>
 <div class="nav-dropdown-item">
 <span class="nav-dropdown-label">{t('nav_tools', lang)} <span class="nav-arrow">⌵</span></span>
 <div class="nav-dropdown-menu">
-<a href="?page=repo&lang={lang}" onclick="return window.coreboxNav('repo', '{lang}', event)" target="_self" class="nav-sub-link">📁 {t('nav_repo', lang)}</a>
-<a href="?page=inspect&lang={lang}" onclick="return window.coreboxNav('inspect', '{lang}', event)" target="_self" class="nav-sub-link">🔍 {t('nav_inspection', lang)}</a>
+{tools_repo_html}
+{tools_inspect_html}
 </div>
 </div>
 <div class="nav-dropdown-item">
@@ -104,25 +127,87 @@ def render_top_navbar(lang: str, current_page: str = "home"):
 <span>🔍</span>
 <input type="text" class="search-input-field" placeholder="{t('nav_search_placeholder', lang)}">
 <div class="search-dropdown-results">
-<div style="padding:0.4rem 1.1rem; font-size:0.75rem; color:#94a3b8; font-weight:600; text-transform:uppercase;">{t('nav_tools', lang)}</div>
-<a href="?page=repo&lang={lang}" onclick="return window.coreboxNav('repo', '{lang}', event)" target="_self" class="nav-sub-link">📁 {t('nav_repo', lang)}</a>
-<a href="?page=inspect&lang={lang}" onclick="return window.coreboxNav('inspect', '{lang}', event)" target="_self" class="nav-sub-link">🔍 {t('nav_inspection', lang)}</a>
-<a href="?page=users&lang={lang}" onclick="return window.coreboxNav('users', '{lang}', event)" target="_self" class="nav-sub-link">👥 {t('nav_users', lang)}</a>
+{search_links_html}
 </div>
 </div>
 <!-- Language Switcher Dropdown (Pure text Vietnamese / English, no icons) -->
 <div class="nav-dropdown-item">
 <span class="nav-dropdown-label">{current_lang_display} <span class="nav-arrow">⌵</span></span>
 <div class="nav-dropdown-menu" style="min-width: 140px;">
-<a href="?page={current_page}&lang=vi" onclick="return window.coreboxLang('vi', event)" target="_self" class="nav-sub-link">Vietnamese</a>
-<a href="?page={current_page}&lang=en" onclick="return window.coreboxLang('en', event)" target="_self" class="nav-sub-link">English</a>
+<a href="?page={current_page}&lang=vi{u_param}" onclick="return window.coreboxLang('vi', event)" target="_self" class="nav-sub-link">Vietnamese</a>
+<a href="?page={current_page}&lang=en{u_param}" onclick="return window.coreboxLang('en', event)" target="_self" class="nav-sub-link">English</a>
 </div>
 </div>
 <!-- User / Guest Pill & Avatar -->
 {user_menu_html}
 </div>
 </div>
-</div>"""
+</div>
+<script>
+(function() {{
+  function findBtn(name) {{
+    let keyElem = document.querySelector('.st-key-btn_' + name);
+    if (keyElem) {{
+      let b = keyElem.querySelector('button');
+      if (b) return b;
+    }}
+    let allBtns = document.querySelectorAll('button');
+    for (let b of allBtns) {{
+      if (b.innerText && b.innerText.trim() === name) return b;
+    }}
+    return null;
+  }}
+
+  window.coreboxNav = function(page, lang, e) {{
+    if (e && e.preventDefault) e.preventDefault();
+    let url = new URL(window.location.href);
+    if (page) url.searchParams.set("page", page);
+    if (lang) url.searchParams.set("lang", lang);
+    window.history.pushState({{}}, "", url.toString());
+
+    let btn = findBtn('nav_' + page);
+    if (btn) {{
+      btn.click();
+      return false;
+    }}
+    window.location.href = url.toString();
+    return false;
+  }};
+
+  window.coreboxLang = function(newLang, e) {{
+    if (e && e.preventDefault) e.preventDefault();
+    let url = new URL(window.location.href);
+    url.searchParams.set("lang", newLang);
+    window.history.pushState({{}}, "", url.toString());
+
+    let btn = findBtn('lang_' + newLang);
+    if (btn) {{
+      btn.click();
+      return false;
+    }}
+    window.location.href = url.toString();
+    return false;
+  }};
+
+  window.coreboxAction = function(action, e) {{
+    if (e && e.preventDefault) e.preventDefault();
+    let url = new URL(window.location.href);
+    url.searchParams.set("action", action);
+    if (action === "logout") {{
+      url.searchParams.delete("u");
+    }}
+    window.history.pushState({{}}, "", url.toString());
+
+    let btn = findBtn('act_' + action);
+    if (btn) {{
+      btn.click();
+      return false;
+    }}
+    window.location.href = url.toString();
+    return false;
+  }};
+}})();
+</script>"""
 
     if hasattr(st, "html"):
         st.html(navbar_html)

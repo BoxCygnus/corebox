@@ -77,14 +77,21 @@ with c_nav:
             st.rerun()
 
 # -----------------------------------------------------------------
-# Handle URL Query Parameters (for initial deep links / bookmarking)
+# Handle URL Query Parameters & Session Synchronization
 # -----------------------------------------------------------------
-if "current_page" not in st.session_state:
-    q_page = st.query_params.get("page")
-    if q_page and q_page in ["home", "repo", "inspect", "users", "login"]:
-        st.session_state["current_page"] = q_page
-    else:
-        st.session_state["current_page"] = "home"
+# Ensure current user is synchronized from session_state or query_params 'u'
+current_email = get_current_user_email()
+if current_email and "u" not in st.query_params:
+    try:
+        st.query_params["u"] = current_email
+    except Exception:
+        pass
+
+q_page = st.query_params.get("page")
+if q_page and q_page in ["home", "repo", "inspect", "users", "login"]:
+    st.session_state["current_page"] = q_page
+elif "current_page" not in st.session_state:
+    st.session_state["current_page"] = "home"
 
 q_lang = st.query_params.get("lang")
 if q_lang and q_lang in ["vi", "en"]:
@@ -117,6 +124,7 @@ if g_token:
     if user:
         st.session_state["current_page"] = "home"
         st.query_params["page"] = "home"
+        st.query_params["u"] = user["email"]
         st.rerun()
 
 # Initialize Session Defaults
@@ -139,16 +147,31 @@ if current_page != "login":
 if current_page == "login":
     render_login_view(lang)
 elif is_pending():
+    # If the user is pending approval, lock tools and display pending notification view
     render_pending_view(lang)
 elif current_page == "repo":
-    render_repository_view(lang)
+    if not is_active():
+        st.warning(t("admin_access_hint", lang))
+        st.session_state["current_page"] = "home"
+        st.query_params["page"] = "home"
+        st.rerun()
+    else:
+        render_repository_view(lang)
 elif current_page == "inspect":
-    render_inspection_view(lang)
+    if not is_active():
+        st.warning(t("admin_access_hint", lang))
+        st.session_state["current_page"] = "home"
+        st.query_params["page"] = "home"
+        st.rerun()
+    else:
+        render_inspection_view(lang)
 elif current_page == "users":
     if is_admin():
         render_users_view(lang)
     else:
         st.warning(t("admin_access_hint", lang))
-        render_login_view(lang)
+        st.session_state["current_page"] = "home"
+        st.query_params["page"] = "home"
+        st.rerun()
 else:
     render_home_view(lang)
