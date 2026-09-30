@@ -41,40 +41,49 @@ with c_nav:
     with col_h1:
         if st.button("nav_home", key="btn_nav_home", help="nav_home"):
             st.session_state["current_page"] = "home"
-            st.rerun()
+            try: st.query_params["page"] = "home"
+            except Exception: pass
     with col_h2:
         if st.button("nav_repo", key="btn_nav_repo", help="nav_repo"):
             st.session_state["current_page"] = "repo"
-            st.rerun()
+            try: st.query_params["page"] = "repo"
+            except Exception: pass
     with col_h3:
         if st.button("nav_inspect", key="btn_nav_inspect", help="nav_inspect"):
             st.session_state["current_page"] = "inspect"
-            st.rerun()
+            try: st.query_params["page"] = "inspect"
+            except Exception: pass
     with col_h4:
         if st.button("nav_users", key="btn_nav_users", help="nav_users"):
             st.session_state["current_page"] = "users"
-            st.rerun()
+            try: st.query_params["page"] = "users"
+            except Exception: pass
     with col_h5:
         if st.button("nav_login", key="btn_nav_login", help="nav_login"):
             st.session_state["current_page"] = "login"
-            st.rerun()
+            try: st.query_params["page"] = "login"
+            except Exception: pass
     with col_h6:
         if st.button("lang_vi", key="btn_lang_vi", help="lang_vi"):
             st.session_state["lang"] = "vi"
-            st.rerun()
+            try: st.query_params["lang"] = "vi"
+            except Exception: pass
     with col_h7:
         if st.button("lang_en", key="btn_lang_en", help="lang_en"):
             st.session_state["lang"] = "en"
-            st.rerun()
+            try: st.query_params["lang"] = "en"
+            except Exception: pass
     with col_h8:
         if st.button("act_login", key="btn_act_login", help="act_login"):
             st.session_state["current_page"] = "login"
-            st.rerun()
+            try: st.query_params["page"] = "login"
+            except Exception: pass
     with col_h9:
         if st.button("act_logout", key="btn_act_logout", help="act_logout"):
             logout_user()
             st.session_state["current_page"] = "home"
-            st.rerun()
+            try: st.query_params["page"] = "home"
+            except Exception: pass
 
 # -----------------------------------------------------------------
 # Handle URL Query Parameters & Session Synchronization
@@ -87,15 +96,20 @@ if current_email and "u" not in st.query_params:
     except Exception:
         pass
 
-q_page = st.query_params.get("page")
-if q_page and q_page in ["home", "repo", "inspect", "users", "login"]:
-    st.session_state["current_page"] = q_page
-elif "current_page" not in st.session_state:
-    st.session_state["current_page"] = "home"
+# Only initialize current_page from query_params on initial load
+if "current_page" not in st.session_state:
+    q_page = st.query_params.get("page")
+    if q_page and q_page in ["home", "repo", "inspect", "users", "login"]:
+        st.session_state["current_page"] = q_page
+    else:
+        st.session_state["current_page"] = "home"
 
-q_lang = st.query_params.get("lang")
-if q_lang and q_lang in ["vi", "en"]:
-    st.session_state["lang"] = q_lang
+if "lang" not in st.session_state:
+    q_lang = st.query_params.get("lang")
+    if q_lang and q_lang in ["vi", "en"]:
+        st.session_state["lang"] = q_lang
+    else:
+        st.session_state["lang"] = "vi"
 
 q_action = st.query_params.get("action")
 if q_action in ["google_login", "login"]:
@@ -107,8 +121,8 @@ if q_action in ["google_login", "login"]:
 elif q_action == "logout":
     logout_user()
     st.session_state["current_page"] = "home"
-    st.query_params["page"] = "home"
     try:
+        st.query_params["page"] = "home"
         del st.query_params["action"]
     except Exception:
         pass

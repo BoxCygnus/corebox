@@ -13,6 +13,34 @@ try:
 except Exception:
     requests = None
 
+import json
+
+def get_browser_storage():
+    try:
+        import js
+        return js.localStorage
+    except Exception:
+        return None
+
+def load_browser_users() -> Dict[str, Dict[str, Any]]:
+    storage = get_browser_storage()
+    if storage:
+        try:
+            val = storage.getItem("corebox_users_store")
+            if val:
+                return json.loads(str(val))
+        except Exception:
+            pass
+    return {}
+
+def save_browser_users(users_map: Dict[str, Dict[str, Any]]):
+    storage = get_browser_storage()
+    if storage:
+        try:
+            storage.setItem("corebox_users_store", json.dumps(users_map, ensure_ascii=False))
+        except Exception as e:
+            print("Failed to save to localStorage:", e)
+
 # Default seed catalog codes for instant out-of-the-box browsing
 DEFAULT_SEED_CODES = [
     {"code": "AB.12300", "raw_code": "AB.123", "name": "Đào móng công trình bằng máy đào 0.8m3, đất cấp II", "unit": "100m3", "source_file": "danh_muc_chuan_2024.xlsx"},
@@ -205,14 +233,61 @@ class Database:
                     "uploaded_at": now_str
                 }
 
+        # Synchronize with browser localStorage if any stored accounts exist
+        browser_users = load_browser_users()
+        if browser_users:
+            for b_email, b_data in browser_users.items():
+                self._users[b_email] = b_data
+                if self.use_d1 or self.has_sqlite:
+                    existing = self.execute("SELECT email FROM users WHERE email = ?", (b_email,))
+                    if not existing:
+                        self.execute(
+                            "INSERT INTO users (email, full_name, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+                            (b_email, b_data.get("full_name", ""), b_data.get("role", "user"), b_data.get("status", "pending"), b_data.get("created_at", now_str), b_data.get("updated_at", now_str))
+                        )
+                    else:
+                        self.execute(
+                            "UPDATE users SET role = ?, status = ?, updated_at = ? WHERE email = ?",
+                            (b_data.get("role", "user"), b_data.get("status", "pending"), b_data.get("updated_at", now_str), b_email)
+                        )
+        else:
+            # Save default state
+            save_browser_users({admin_email: {
+                "email": admin_email,
+                "full_name": "System Administrator",
+                "role": "admin",
+                "status": "active",
+                "created_at": now_str,
+                "updated_at": now_str
+            }})
+
     # ================= User Management =================
+    def _sync_all_to_browser(self):
+        try:
+            users_list = self.get_all_users()
+            save_browser_users({u["email"]: u for u in users_list})
+        except Exception:
+            pass
+
     def get_user(self, email: str) -> Optional[Dict[str, Any]]:
         if not email:
             return None
         norm_email = email.strip().lower()
         if self.use_d1 or self.has_sqlite:
             res = self.execute("SELECT * FROM users WHERE email = ? LIMIT 1", (norm_email,))
-            return res[0] if res else None
+            if res:
+                return res[0]
+        # Check browser storage if not found in db
+        b_users = load_browser_users()
+        if norm_email in b_users:
+            u = b_users[norm_email]
+            if self.use_d1 or self.has_sqlite:
+                now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.execute(
+                    "INSERT INTO users (email, full_name, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+                    (norm_email, u.get("full_name", ""), u.get("role", "user"), u.get("status", "pending"), u.get("created_at", now_str), u.get("updated_at", now_str))
+                )
+            return u
         return self._users.get(norm_email)
 
     def register_or_get_user(self, email: str, full_name: str = "") -> Dict[str, Any]:
@@ -221,6 +296,7 @@ class Database:
         now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         if user:
+            self._sync_all_to_browser()
             return user
 
         if norm_email == config.ADMIN_EMAIL.strip().lower():
@@ -238,7 +314,8 @@ class Database:
                 "VALUES (?, ?, ?, ?, ?, ?)",
                 (norm_email, display_name, role, status, now_str, now_str)
             )
-            return self.get_user(norm_email)
+            u = self.get_user(norm_email)
+            self._users[norm_email] = u
         else:
             new_u = {
                 "email": norm_email,
@@ -249,9 +326,24 @@ class Database:
                 "updated_at": now_str
             }
             self._users[norm_email] = new_u
-            return new_u
+            u = new_u
+
+        self._sync_all_to_browser()
+        return u
 
     def get_all_users(self, status: Optional[str] = None) -> List[Dict[str, Any]]:
+        # Sync in any browser users first
+        b_users = load_browser_users()
+        if b_users and (self.use_d1 or self.has_sqlite):
+            for b_email, b_data in b_users.items():
+                existing = self.execute("SELECT email FROM users WHERE email = ?", (b_email,))
+                if not existing:
+                    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    self.execute(
+                        "INSERT INTO users (email, full_name, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+                        (b_email, b_data.get("full_name", ""), b_data.get("role", "user"), b_data.get("status", "pending"), b_data.get("created_at", now_str), b_data.get("updated_at", now_str))
+                    )
+
         if self.use_d1 or self.has_sqlite:
             if status:
                 return self.execute("SELECT * FROM users WHERE status = ? ORDER BY created_at DESC", (status,))
@@ -271,11 +363,11 @@ class Database:
                 "UPDATE users SET status = ?, updated_at = ? WHERE email = ?",
                 (status, now_str, norm_email)
             )
-        else:
-            u = self._users.get(norm_email)
-            if u:
-                u["status"] = status
-                u["updated_at"] = now_str
+        u = self._users.get(norm_email)
+        if u:
+            u["status"] = status
+            u["updated_at"] = now_str
+        self._sync_all_to_browser()
 
     def update_user_role(self, email: str, role: str):
         now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -285,11 +377,11 @@ class Database:
                 "UPDATE users SET role = ?, updated_at = ? WHERE email = ?",
                 (role, now_str, norm_email)
             )
-        else:
-            u = self._users.get(norm_email)
-            if u:
-                u["role"] = role
-                u["updated_at"] = now_str
+        u = self._users.get(norm_email)
+        if u:
+            u["role"] = role
+            u["updated_at"] = now_str
+        self._sync_all_to_browser()
 
     def delete_user(self, email: str):
         norm_email = email.strip().lower()
@@ -297,8 +389,8 @@ class Database:
             return
         if self.use_d1 or self.has_sqlite:
             self.execute("DELETE FROM users WHERE email = ?", (norm_email,))
-        else:
-            self._users.pop(norm_email, None)
+        self._users.pop(norm_email, None)
+        self._sync_all_to_browser()
 
     # ================= Work Codes Repository =================
     def add_work_codes(self, records: List[Dict[str, str]], filename: str, uploaded_by: str) -> int:

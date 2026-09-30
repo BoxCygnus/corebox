@@ -26,14 +26,13 @@ def render_home_view(lang: str):
     if is_pending():
         render_pending_view(lang)
     else:
-        # Hero Box Layout
-        safe_html(f"""<div class="hero-box">
-<div class="hero-brand-name">Corebox</div>
-<div class="hero-subheadline">{t('app_subtitle', lang)}</div>
-<div class="hero-small-desc">{t('app_description', lang)}</div>
-</div>""")
-
-    # Footer (Cách mép dưới màn hình 1cm)
-    safe_html(f"""<div class="corebox-footer">
-{t('app_footer', lang)} • Cloudflare & Python Architecture • Version 2.0
+        safe_html(f"""<div class="home-page-container">
+<div class="hero-box">
+  <div class="hero-brand-name">Corebox</div>
+  <div class="hero-subheadline">{t('app_subtitle', lang)}</div>
+  <div class="hero-small-desc">{t('app_description', lang)}</div>
+</div>
+<div class="corebox-footer">
+  {t('app_footer', lang)} • Cloudflare & Python Architecture • Version 2.0
+</div>
 </div>""")

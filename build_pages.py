@@ -103,6 +103,7 @@ def build_pages_app():
     }}
     /* Google Sign-in dark background without white borders */
     #google-signin-btn-slot,
+    .google-btn-wrapper,
     .g_id_signin,
     #google-signin-btn-slot iframe,
     .g_id_signin iframe,
@@ -110,7 +111,7 @@ def build_pages_app():
       background: transparent !important;
       border: none !important;
       box-shadow: none !important;
-      color-scheme: dark !important;
+      color-scheme: light !important;
     }}
     #loading-screen {{
       position: fixed;
@@ -184,54 +185,86 @@ def build_pages_app():
       }}
       const btns = document.querySelectorAll('button');
       for (const b of btns) {{
-        if (b.innerText && b.innerText.trim() === name) return b;
+        const t = (b.innerText || '').trim();
+        if (t === name) return b;
+        if (b.getAttribute('title') === name || b.getAttribute('help') === name) return b;
       }}
       return null;
     }}
 
     window.coreboxNav = function(page, lang, e) {{
-      if (e && e.preventDefault) e.preventDefault();
+      if (e) {{
+        if (e.preventDefault) e.preventDefault();
+        if (e.stopPropagation) e.stopPropagation();
+      }}
       const url = new URL(window.location);
       if (page) url.searchParams.set("page", page);
       if (lang) url.searchParams.set("lang", lang);
-      window.history.pushState({{}}, "", url);
+      window.history.replaceState({{}}, "", url);
+      
       const btn = findBtn('nav_' + page);
       if (btn) {{
         btn.click();
         return false;
       }}
-      window.location.href = url.toString();
+      setTimeout(() => {{
+        const rBtn = findBtn('nav_' + page);
+        if (rBtn) rBtn.click();
+        else window.location.href = url.toString();
+      }}, 50);
       return false;
     }};
 
     window.coreboxLang = function(newLang, e) {{
-      if (e && e.preventDefault) e.preventDefault();
+      if (e) {{
+        if (e.preventDefault) e.preventDefault();
+        if (e.stopPropagation) e.stopPropagation();
+      }}
       const url = new URL(window.location);
       url.searchParams.set("lang", newLang);
-      window.history.pushState({{}}, "", url);
+      window.history.replaceState({{}}, "", url);
+
+      const target = document.getElementById("google-signin-btn-slot");
+      if (target) {{
+        target.removeAttribute("data-rendered-locale");
+        target.innerHTML = "";
+      }}
+      if (window.initGoogleSignIn) window.initGoogleSignIn();
+
       const btn = findBtn('lang_' + newLang);
       if (btn) {{
         btn.click();
         return false;
       }}
-      window.location.href = url.toString();
+      setTimeout(() => {{
+        const rBtn = findBtn('lang_' + newLang);
+        if (rBtn) rBtn.click();
+        else window.location.href = url.toString();
+      }}, 50);
       return false;
     }};
 
     window.coreboxAction = function(action, e) {{
-      if (e && e.preventDefault) e.preventDefault();
+      if (e) {{
+        if (e.preventDefault) e.preventDefault();
+        if (e.stopPropagation) e.stopPropagation();
+      }}
       const url = new URL(window.location);
       url.searchParams.set("action", action);
       if (action === "logout") {{
         url.searchParams.delete("u");
       }}
-      window.history.pushState({{}}, "", url);
+      window.history.replaceState({{}}, "", url);
       const btn = findBtn('act_' + action);
       if (btn) {{
         btn.click();
         return false;
       }}
-      window.location.href = url.toString();
+      setTimeout(() => {{
+        const rBtn = findBtn('act_' + action);
+        if (rBtn) rBtn.click();
+        else window.location.href = url.toString();
+      }}, 50);
       return false;
     }};
 
@@ -245,23 +278,31 @@ def build_pages_app():
 
     window.initGoogleSignIn = function() {{
       try {{
+        const url = new URL(window.location);
+        const currentLang = url.searchParams.get("lang") || "vi";
+        const gsiLocale = (currentLang === "en") ? "en" : "vi";
+
         if (window.google && window.google.accounts && window.google.accounts.id) {{
           window.google.accounts.id.initialize({{
             client_id: "806346687682-2u257o2r9r330c6n9so3f4uj1ntm5rcb.apps.googleusercontent.com",
             callback: window.handleGoogleCredentialResponse,
             auto_select: false,
-            cancel_on_tap_outside: true
+            cancel_on_tap_outside: true,
+            locale: gsiLocale
           }});
           const target = document.getElementById("google-signin-btn-slot");
-          if (target && !target.hasChildNodes()) {{
+          if (target && target.getAttribute("data-rendered-locale") !== gsiLocale) {{
+            target.innerHTML = "";
             window.google.accounts.id.renderButton(target, {{
               theme: "filled_black",
               size: "large",
               shape: "rectangular",
               text: "continue_with",
               logo_alignment: "left",
-              width: 360
+              width: 360,
+              locale: gsiLocale
             }});
+            target.setAttribute("data-rendered-locale", gsiLocale);
           }}
         }}
       }} catch (e) {{
@@ -271,8 +312,13 @@ def build_pages_app():
 
     setInterval(() => {{
       const target = document.getElementById("google-signin-btn-slot");
-      if (target && !target.hasChildNodes()) {{
-        window.initGoogleSignIn();
+      if (target) {{
+        const url = new URL(window.location);
+        const currentLang = url.searchParams.get("lang") || "vi";
+        const gsiLocale = (currentLang === "en") ? "en" : "vi";
+        if (target.getAttribute("data-rendered-locale") !== gsiLocale || !target.hasChildNodes()) {{
+          window.initGoogleSignIn();
+        }}
       }}
     }}, 400);
 

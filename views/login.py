@@ -105,24 +105,13 @@ def render_login_view(lang: str):
                data-context="signin"
                data-ux_mode="popup"
                data-callback="handleGoogleCredentialResponse"
-               data-auto_prompt="false">
+               data-auto_prompt="false"
+               data-locale="{lang}">
           </div>
           
-          <div style="margin: 1.5rem 0; min-height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: transparent;">
-            <!-- Slot for Google rendered standard button -->
-            <div id="google-signin-btn-slot" style="background: transparent;"></div>
-            
-            <!-- Standard GSI fallback signin button -->
-            <div class="g_id_signin"
-                 data-type="standard"
-                 data-shape="rectangular"
-                 data-theme="filled_black"
-                 data-text="continue_with"
-                 data-size="large"
-                 data-logo_alignment="left"
-                 data-width="360"
-                 style="background: transparent;">
-            </div>
+          <div class="google-btn-wrapper" style="margin: 1.5rem 0; min-height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: transparent !important; color-scheme: light !important; width: 100%;">
+            <!-- Single Slot for Google rendered standard button -->
+            <div id="google-signin-btn-slot" style="background: transparent !important; color-scheme: light !important; min-width: 320px; display: flex; justify-content: center;"></div>
           </div>
 
           <!-- Terms & Privacy Policy footer notice -->

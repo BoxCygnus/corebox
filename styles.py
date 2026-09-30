@@ -72,6 +72,7 @@ def get_custom_css() -> str:
 
     /* Google Sign-in dark background without white borders */
     #google-signin-btn-slot,
+    .google-btn-wrapper,
     .g_id_signin,
     #google-signin-btn-slot iframe,
     .g_id_signin iframe,
@@ -79,7 +80,7 @@ def get_custom_css() -> str:
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
-        color-scheme: dark !important;
+        color-scheme: light !important;
     }
 
     /* Disabled Navigation Link for Guest & Pending Accounts */
@@ -101,7 +102,7 @@ def get_custom_css() -> str:
     [data-testid="stMainBlockContainer"], 
     [data-testid="block-container"],
     div[data-testid="stAppViewBlockContainer"] {
-        padding-top: 0.2rem !important;
+        padding-top: 0 !important;
         padding-left: 2cm !important;
         padding-right: 2cm !important;
         padding-bottom: 0 !important;
@@ -114,16 +115,18 @@ def get_custom_css() -> str:
     }
 
     /* ============================================================== */
-    /* CUSTOM TOP NAVBAR (No white borders, pure hover dropdowns)     */
+    /* CUSTOM TOP NAVBAR (Frozen / Sticky at top, 1cm margin from top)*/
     /* ============================================================== */
     .corebox-navbar-container {
-        background-color: #0b0e17;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        padding: 0.45rem 0 0.65rem 0;
-        margin-top: 0 !important;
-        margin-bottom: 2rem;
-        position: relative;
+        position: sticky !important;
+        top: 0 !important;
         z-index: 10000;
+        background-color: #0b0e17 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 1cm !important; /* Căn lề trên 1cm khi ở mức 100% giao diện */
+        padding-bottom: 0.65rem !important;
+        margin-top: 0 !important;
+        margin-bottom: 1.5rem !important;
         width: 100%;
         box-sizing: border-box;
     }
@@ -462,16 +465,25 @@ def get_custom_css() -> str:
         color: #e2e8f0;
     }
 
-    /* FOOTER SÁT MÉP DƯỚI 1CM Ở MỨC 100% */
+    /* HOME PAGE FULL HEIGHT CONTAINER (Center hero, push footer to bottom) */
+    .home-page-container {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        min-height: calc(100vh - 120px) !important;
+        box-sizing: border-box !important;
+    }
+
+    /* FOOTER SÁT MÉP DƯỚI 1CM Ở MỨC 100% GIAO DIỆN */
     .corebox-footer {
         text-align: center;
-        padding: 1rem 0 1cm 0 !important;
+        padding: 0.85rem 0 !important;
+        margin-top: auto !important;
+        margin-bottom: 1cm !important; /* Căn lề dưới đúng 1cm ở mức 100% */
         color: #64748b;
         font-size: 0.85rem;
         letter-spacing: 0.05em;
         border-top: 1px solid rgba(255, 255, 255, 0.06);
-        margin-top: 3rem;
-        margin-bottom: 0 !important;
     }
     </style>
     """
