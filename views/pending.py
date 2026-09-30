@@ -16,7 +16,7 @@ def render_pending_view(lang: str):
             <div class="pending-notice-icon">⏳</div>
             <div class="pending-notice-title">{t('pending_title', lang)}</div>
             <div class="pending-notice-text">
-                {t('pending_message', lang, email=f"<b>{email}</b>", admin_email=f"<b>{config.ADMIN_EMAIL}</b>")}
+                {t('pending_message', lang, email=f"<b>{email}</b>")}
             </div>
             <div style="margin-top:1.2rem; color:#94a3b8; font-size:0.9rem;">
                 💡 {t('pending_tip', lang)}

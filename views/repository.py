@@ -33,10 +33,10 @@ def render_repository_view(lang: str):
 
     # Admin notice if regular user
     if not user_is_admin:
-        st.info(f"ℹ️ {t('repo_admin_only_notice', lang, admin_email=config.ADMIN_EMAIL)}")
+        st.info(f"ℹ️ {t('repo_admin_only_notice', lang)}")
 
-    # 1. MAJOR SECTION: CẬP NHẬT TỆP DANH MỤC (Upload & Extract)
-    with st.expander(f"📤 {t('repo_update_section', lang)}", expanded=True):
+    # 1. MAJOR SECTION: CẬP NHẬT KHO DỮ LIỆU (Upload & Extract)
+    with st.expander(f"📤 **{t('repo_update_section', lang)}**", expanded=True):
         if user_is_admin:
             st.markdown(f"*{t('repo_upload_hint', lang)}*")
             st.markdown(
@@ -92,13 +92,13 @@ def render_repository_view(lang: str):
                             st.success(t("msg_upload_success", lang, count=inserted_count, filename=filename))
                             st.rerun()
         else:
-            st.caption(f"🔒 {t('repo_admin_only_notice', lang, admin_email=config.ADMIN_EMAIL)}")
+            st.caption(f"🔒 {t('repo_admin_only_notice', lang)}")
 
     st.markdown("<div style='margin-top: 0.6rem;'></div>", unsafe_allow_html=True)
 
-    # 2. MAJOR SECTION: QUẢN LÝ CÁC TỆP DANH MỤC ĐÃ TẢI LÊN
+    # 2. MAJOR SECTION: QUẢN LÝ KHO DỮ LIỆU
     files = db.get_uploaded_files()
-    with st.expander(f"📑 {t('repo_files_section_collapsible', lang)}", expanded=True):
+    with st.expander(f"📑 **{t('repo_files_section_collapsible', lang)}**", expanded=True):
         if not files:
             st.info(t("msg_no_files", lang))
         else:
@@ -130,8 +130,8 @@ def render_repository_view(lang: str):
 
     st.markdown("<div style='margin-top: 0.6rem;'></div>", unsafe_allow_html=True)
 
-    # 3. MAJOR SECTION: DANH MỤC TỔNG HỢP TOÀN BỘ KHO DỮ LIỆU
-    with st.expander(f"📚 {t('master_view_section_collapsible', lang)}", expanded=True):
+    # 3. MAJOR SECTION: DANH MỤC TỔNG HỢP KHO DỮ LIỆU
+    with st.expander(f"📚 **{t('master_view_section_collapsible', lang)}**", expanded=True):
         total_records = db.count_work_codes()
         if total_records == 0:
             st.info(t("msg_repo_empty_browse", lang))

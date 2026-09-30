@@ -489,5 +489,15 @@ def get_custom_css() -> str:
         letter-spacing: 0.05em;
         border-top: 1px solid rgba(255, 255, 255, 0.06);
     }
+
+    /* EXPANDER HEADER FONT (To hơn bên trong và in đậm) */
+    [data-testid="stExpander"] details summary p,
+    [data-testid="stExpander"] summary span,
+    .streamlit-expanderHeader p {
+        font-size: 1.25rem !important;
+        font-weight: 700 !important;
+        color: #f8fafc !important;
+        letter-spacing: -0.01em !important;
+    }
     </style>
     """

@@ -22,19 +22,19 @@ def render_top_navbar(lang: str, current_page: str = "home"):
     user_is_pending = is_pending()
     user_is_guest = (current_user is None)
 
-    u_param = f"&u={current_email}" if current_email else ""
+    u_param = ""
 
     # Tools sub-items links
     if user_is_active:
-        tools_repo_html = f'<a href="?page=repo&lang={lang}{u_param}" onclick="return window.coreboxNav(\'repo\', \'{lang}\', event)" target="_self" class="nav-sub-link">📁 {t("nav_repo", lang)}</a>'
-        tools_inspect_html = f'<a href="?page=inspect&lang={lang}{u_param}" onclick="return window.coreboxNav(\'inspect\', \'{lang}\', event)" target="_self" class="nav-sub-link">🔍 {t("nav_inspection", lang)}</a>'
+        tools_repo_html = f'<a href="?page=repo&lang={lang}" onclick="return window.coreboxNav(\'repo\', \'{lang}\', event)" target="_self" class="nav-sub-link">📁 {t("nav_repo", lang)}</a>'
+        tools_inspect_html = f'<a href="?page=inspect&lang={lang}" onclick="return window.coreboxNav(\'inspect\', \'{lang}\', event)" target="_self" class="nav-sub-link">🔍 {t("nav_inspection", lang)}</a>'
     else:
         tools_repo_html = f'<span class="nav-sub-link nav-sub-link-disabled" title="Chức năng bị khóa">📁 {t("nav_repo", lang)} 🔒</span>'
         tools_inspect_html = f'<span class="nav-sub-link nav-sub-link-disabled" title="Chức năng bị khóa">🔍 {t("nav_inspection", lang)} 🔒</span>'
 
     # Admin sub-item link
     if user_is_admin:
-        admin_link_html = f'<a href="?page=users&lang={lang}{u_param}" onclick="return window.coreboxNav(\'users\', \'{lang}\', event)" target="_self" class="nav-sub-link">👥 {t("nav_users", lang)}</a>'
+        admin_link_html = f'<a href="?page=users&lang={lang}" onclick="return window.coreboxNav(\'users\', \'{lang}\', event)" target="_self" class="nav-sub-link">👥 {t("nav_users", lang)}</a>'
     else:
         admin_link_html = f'<span class="nav-sub-link nav-sub-link-disabled" title="Chức năng bị khóa">👥 {t("nav_users", lang)} 🔒</span>'
 
@@ -43,15 +43,16 @@ def render_top_navbar(lang: str, current_page: str = "home"):
 
     # User Display vs Guest Display
     if current_user:
-        raw_name = current_user.get("full_name") or current_email.split("@")[0]
+        raw_name = current_user.get("full_name") or (current_email.split("@")[0] if current_email else "User")
         user_display_name = raw_name
         avatar_initial = (user_display_name[0] if user_display_name else "U").upper()
         role = current_user.get("role", "user")
         status = current_user.get("status", "pending")
         role_display = "👑 ADMIN" if user_is_admin else (f"🟢 {t('status_active', lang)}" if status == "active" else f"⏳ {t('status_pending', lang)}")
+        email_display_str = "System Administrator" if user_is_admin else (current_email or "")
 
         if user_is_admin:
-            admin_dropdown_item = f'<a href="?page=users&lang={lang}{u_param}" onclick="return window.coreboxNav(\'users\', \'{lang}\', event)" target="_self" class="nav-sub-link">👥 {t("nav_users", lang)}</a>'
+            admin_dropdown_item = f'<a href="?page=users&lang={lang}" onclick="return window.coreboxNav(\'users\', \'{lang}\', event)" target="_self" class="nav-sub-link">👥 {t("nav_users", lang)}</a>'
         else:
             admin_dropdown_item = ""
 
@@ -64,11 +65,11 @@ def render_top_navbar(lang: str, current_page: str = "home"):
           </span>
           <div class="nav-dropdown-menu" style="right: 0; left: auto; min-width: 240px;">
             <div style="padding: 0.65rem 1.15rem; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.82rem; color: #94a3b8;">
-              <div style="font-weight: 600; color: #f1f5f9; margin-bottom: 3px;">{current_email}</div>
+              <div style="font-weight: 600; color: #f1f5f9; margin-bottom: 3px;">{email_display_str}</div>
               <div style="color: #38bdf8; font-size: 0.75rem; font-weight: 700;">{role_display}</div>
             </div>
             {admin_dropdown_item}
-            <a href="?page=login&lang={lang}{u_param}" onclick="return window.coreboxNav('login', '{lang}', event)" target="_self" class="nav-sub-link">🌐 {t('btn_switch_google', lang)}</a>
+            <a href="?page=login&lang={lang}" onclick="return window.coreboxNav('login', '{lang}', event)" target="_self" class="nav-sub-link">🌐 {t('btn_switch_google', lang)}</a>
             <a href="?page=home&lang={lang}&action=logout" onclick="return window.coreboxAction('logout', event)" target="_self" class="nav-sub-link" style="color: #f87171 !important;">🚪 {t('nav_logout', lang)}</a>
           </div>
         </div>

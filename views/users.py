@@ -13,7 +13,7 @@ def render_users_view(lang: str):
     - Lists active accounts with status and roles
     """
     if not is_admin():
-        st.error(t("access_denied", lang, admin_email=config.ADMIN_EMAIL))
+        st.error(t("access_denied", lang))
         st.info(t("admin_access_hint", lang))
         return
 
@@ -82,7 +82,10 @@ def render_users_view(lang: str):
                 col_info, col_actions = st.columns([7, 3], vertical_alignment="center")
                 with col_info:
                     badge_str = t("badge_root_admin", lang) if is_root_admin else (t("badge_admin", lang) if u_role == "admin" else t("badge_user", lang))
-                    st.markdown(f"**{u_name}** (`{u_email}`) — *{badge_str}*")
+                    if is_root_admin:
+                        st.markdown(f"**{u_name}** — *{badge_str}*")
+                    else:
+                        st.markdown(f"**{u_name}** (`{u_email}`) — *{badge_str}*")
                     formatted_updated = format_datetime_by_lang(u.get('updated_at', u.get('created_at', '')), lang)
                     st.caption(f"{t('last_updated_prefix', lang)}: {formatted_updated}")
                 with col_actions:

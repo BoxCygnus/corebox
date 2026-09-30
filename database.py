@@ -41,6 +41,18 @@ def save_browser_users(users_map: Dict[str, Dict[str, Any]]):
         except Exception as e:
             print("Failed to save to localStorage:", e)
 
+def fix_mojibake(s: str) -> str:
+    if not s or not isinstance(s, str):
+        return s
+    if any(k in s for k in ["á»", "Ã", "áº", "á»‡", "á»•", "á»‹", "Â", "â"]):
+        try:
+            fixed = s.encode("latin1").decode("utf-8")
+            if fixed:
+                return fixed
+        except Exception:
+            pass
+    return s
+
 # Default seed catalog codes for instant out-of-the-box browsing
 DEFAULT_SEED_CODES = [
     {"code": "AB.12300", "raw_code": "AB.123", "name": "Đào móng công trình bằng máy đào 0.8m3, đất cấp II", "unit": "100m3", "source_file": "danh_muc_chuan_2024.xlsx"},
@@ -233,14 +245,20 @@ class Database:
                     "uploaded_at": now_str
                 }
 
-        # 1. Synchronize with data/users.json if mounted from browser localStorage
-        users_file = os.path.join(os.path.dirname(__file__), "data", "users.json")
+        # 1. Synchronize with users_store.json / data/users.json
+        root_dir = os.path.dirname(os.path.abspath(__file__))
+        users_file = os.path.join(root_dir, "users_store.json")
+        if not os.path.exists(users_file):
+            users_file = os.path.join(root_dir, "data", "users.json")
+
         if os.path.exists(users_file):
             try:
                 with open(users_file, "r", encoding="utf-8") as uf:
                     b_users = json.load(uf)
                 if isinstance(b_users, dict):
                     for b_email, b_data in b_users.items():
+                        if "full_name" in b_data:
+                            b_data["full_name"] = fix_mojibake(b_data["full_name"])
                         self._users[b_email] = b_data
                         if self.use_d1 or self.has_sqlite:
                             existing = self.execute("SELECT email FROM users WHERE email = ?", (b_email,))
@@ -251,23 +269,26 @@ class Database:
                                 )
                             else:
                                 self.execute(
-                                    "UPDATE users SET role = ?, status = ?, updated_at = ? WHERE email = ?",
-                                    (b_data.get("role", "user"), b_data.get("status", "pending"), b_data.get("updated_at", now_str), b_email)
+                                    "UPDATE users SET full_name = ?, role = ?, status = ?, updated_at = ? WHERE email = ?",
+                                    (b_data.get("full_name", ""), b_data.get("role", "user"), b_data.get("status", "pending"), b_data.get("updated_at", now_str), b_email)
                                 )
             except Exception as e:
-                print("Error loading users.json:", e)
+                print("Error loading users_store.json:", e)
 
-        # 2. Synchronize with data/catalog.json if mounted from browser localStorage
-        catalog_file = os.path.join(os.path.dirname(__file__), "data", "catalog.json")
+        # 2. Synchronize with catalog_store.json / data/catalog.json
+        catalog_file = os.path.join(root_dir, "catalog_store.json")
+        if not os.path.exists(catalog_file):
+            catalog_file = os.path.join(root_dir, "data", "catalog.json")
+
         if os.path.exists(catalog_file):
             try:
                 with open(catalog_file, "r", encoding="utf-8") as cf:
                     cat_content = cf.read()
                 self.import_catalog_json(cat_content)
             except Exception as e:
-                print("Error loading catalog.json:", e)
+                print("Error loading catalog_store.json:", e)
         else:
-            # Seed default records only if empty
+            # Seed default records only if completely empty
             if self.count_work_codes() == 0:
                 self.seed_default_codes()
 
@@ -283,22 +304,27 @@ class Database:
         if not email:
             return None
         norm_email = email.strip().lower()
+        u = None
         if self.use_d1 or self.has_sqlite:
             res = self.execute("SELECT * FROM users WHERE email = ? LIMIT 1", (norm_email,))
             if res:
-                return res[0]
+                u = res[0]
         # Check browser storage if not found in db
-        b_users = load_browser_users()
-        if norm_email in b_users:
-            u = b_users[norm_email]
-            if self.use_d1 or self.has_sqlite:
-                now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                self.execute(
-                    "INSERT INTO users (email, full_name, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
-                    (norm_email, u.get("full_name", ""), u.get("role", "user"), u.get("status", "pending"), u.get("created_at", now_str), u.get("updated_at", now_str))
-                )
-            return u
-        return self._users.get(norm_email)
+        if not u:
+            b_users = load_browser_users()
+            if norm_email in b_users:
+                u = b_users[norm_email]
+                if self.use_d1 or self.has_sqlite:
+                    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    self.execute(
+                        "INSERT INTO users (email, full_name, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+                        (norm_email, u.get("full_name", ""), u.get("role", "user"), u.get("status", "pending"), u.get("created_at", now_str), u.get("updated_at", now_str))
+                    )
+        if not u:
+            u = self._users.get(norm_email)
+        if u and "full_name" in u:
+            u["full_name"] = fix_mojibake(u["full_name"])
+        return u
 
     def register_or_get_user(self, email: str, full_name: str = "") -> Dict[str, Any]:
         norm_email = email.strip().lower()
@@ -316,7 +342,7 @@ class Database:
             role = "user"
             status = "pending"
 
-        display_name = full_name or norm_email.split("@")[0]
+        display_name = fix_mojibake(full_name or norm_email.split("@")[0])
 
         if self.use_d1 or self.has_sqlite:
             self.execute(
@@ -458,7 +484,17 @@ class Database:
                 "uploaded_by": uploaded_by,
                 "uploaded_at": now_str
             }
+            self._persist_catalog_to_file()
             return len(records)
+
+    def _persist_catalog_to_file(self):
+        try:
+            root_dir = os.path.dirname(os.path.abspath(__file__))
+            catalog_file = os.path.join(root_dir, "catalog_store.json")
+            with open(catalog_file, "w", encoding="utf-8") as cf:
+                cf.write(self.export_catalog_json())
+        except Exception:
+            pass
 
     def get_uploaded_files(self) -> List[Dict[str, Any]]:
         if self.use_d1 or self.has_sqlite:
@@ -475,6 +511,7 @@ class Database:
         else:
             self._work_codes = [r for r in self._work_codes if r.get("source_file") != filename]
             self._uploaded_files.pop(filename, None)
+            self._persist_catalog_to_file()
 
     def get_work_codes(
         self,

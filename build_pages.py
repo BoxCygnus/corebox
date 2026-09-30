@@ -27,6 +27,8 @@ def build_pages_app():
         "views/repository.py",
         "views/inspection.py",
         "views/login.py",
+        "catalog_store.json",
+        "users_store.json",
     ]
 
     bundle_dict = {}
@@ -253,6 +255,8 @@ def build_pages_app():
       url.searchParams.set("action", action);
       if (action === "logout") {{
         url.searchParams.delete("u");
+        url.searchParams.delete("g_token");
+        try {{ localStorage.removeItem("corebox_active_user"); }} catch(e) {{}}
       }}
       window.history.replaceState({{}}, "", url);
       const btn = findBtn('act_' + action);
@@ -333,7 +337,9 @@ def build_pages_app():
       try {{
         const parts = response.credential.split('.');
         if (parts.length === 3) {{
-          const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+          const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+          const jsonStr = decodeURIComponent(atob(b64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+          const payload = JSON.parse(jsonStr);
           email = (payload.email || '').toLowerCase().trim();
           name = payload.name || email.split('@')[0];
         }}
@@ -343,8 +349,9 @@ def build_pages_app():
 
       if (email) {{
         const isAdmin = (email === "happyclone96@gmail.com");
-        // Save to localStorage immediately
+        // Save to localStorage active_user and users_store immediately
         try {{
+          localStorage.setItem("corebox_active_user", JSON.stringify({{ email: email, name: name }}));
           let uStore = JSON.parse(localStorage.getItem("corebox_users_store") || "{{}}");
           if (!uStore[email]) {{
             uStore[email] = {{
@@ -355,6 +362,8 @@ def build_pages_app():
               created_at: new Date().toISOString().replace("T", " ").substring(0, 19),
               updated_at: new Date().toISOString().replace("T", " ").substring(0, 19)
             }};
+          }} else {{
+            if (name) uStore[email].full_name = name;
           }}
           localStorage.setItem("corebox_users_store", JSON.stringify(uStore));
         }} catch (e) {{}}
@@ -373,7 +382,7 @@ def build_pages_app():
 
       const url = new URL(window.location);
       url.searchParams.set("page", "home");
-      if (email) url.searchParams.set("u", email);
+      url.searchParams.delete("u");
       url.searchParams.set("g_token", response.credential);
       window.location.href = url.toString();
     }};
@@ -396,12 +405,12 @@ def build_pages_app():
           if (target && target.getAttribute("data-rendered-locale") !== gsiLocale) {{
             target.innerHTML = "";
             window.google.accounts.id.renderButton(target, {{
-              theme: "filled_black",
+              theme: "outline",
               size: "large",
-              shape: "rectangular",
+              shape: "pill",
               text: "continue_with",
               logo_alignment: "left",
-              width: 360,
+              width: 340,
               locale: gsiLocale
             }});
             target.setAttribute("data-rendered-locale", gsiLocale);
@@ -429,6 +438,14 @@ def build_pages_app():
       loadStatus.innerText = "Đang tải thư viện Python & Công cụ QLDA...";
 
       try {{
+        // Pre-mount sync: restore active session from localStorage
+        try {{
+          const activeSess = localStorage.getItem("corebox_active_user");
+          if (activeSess) {{
+            bundledFiles["active_session.json"] = activeSess;
+          }}
+        }} catch (e) {{}}
+
         // Pre-mount sync: fetch latest users and catalog from Cloudflare KV / localStorage
         try {{
           const fetchUsers = fetch("/api/users").then(r => r.ok ? r.json() : null).catch(() => null);
@@ -448,7 +465,9 @@ def build_pages_app():
             try {{ usersStore = JSON.parse(localStorage.getItem("corebox_users_store") || "{{}}"); }} catch(e){{}}
           }}
           if (usersStore && Object.keys(usersStore).length > 0) {{
-            bundledFiles["data/users.json"] = JSON.stringify(usersStore);
+            const uStr = JSON.stringify(usersStore);
+            bundledFiles["users_store.json"] = uStr;
+            bundledFiles["data/users.json"] = uStr;
           }}
 
           let catStore = null;
@@ -459,7 +478,9 @@ def build_pages_app():
             try {{ catStore = JSON.parse(localStorage.getItem("corebox_catalog_store") || "null"); }} catch(e){{}}
           }}
           if (catStore) {{
-            bundledFiles["data/catalog.json"] = JSON.stringify(catStore);
+            const cStr = (typeof catStore === "string") ? catStore : JSON.stringify(catStore);
+            bundledFiles["catalog_store.json"] = cStr;
+            bundledFiles["data/catalog.json"] = cStr;
           }}
         }} catch (e) {{
           console.error("Pre-mount sync error:", e);

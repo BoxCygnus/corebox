@@ -265,14 +265,15 @@ def extract_from_docx(file_bytes: bytes, filename: str) -> List[Dict[str, str]]:
 # ================= 3. PDF CATALOG PARSER =================
 def extract_from_pdf(file_bytes: bytes, filename: str) -> List[Dict[str, str]]:
     """
-    Trích xuất bảng và danh mục từ PDF:
-    1. Ưu tiên pdfplumber (nếu có môi trường local/server).
-    2. Tự động hỗ trợ pypdf trích xuất text thông minh theo từng dòng cho Pyodide/trình duyệt.
+    Trích xuất danh mục từ PDF (đặc biệt hỗ trợ bảng Mục lục chuẩn: Mã hiệu, Nội dung, Trang):
+    - Chỉ lấy 2 nội dung: mã hiệu (code) và nội dung (name), unit=''
+    - Bỏ qua các dòng chương / mục không có mã hiệu (như Thuyết minh, Chương I...)
+    - Loại bỏ số trang ở cuối dòng
     """
     records = []
     seen_codes = set()
 
-    # 1. Thử qua pdfplumber nếu có
+    # 1. Thử qua pdfplumber nếu có (local / server)
     if pdfplumber is not None:
         try:
             with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
@@ -284,13 +285,11 @@ def extract_from_pdf(file_bytes: bytes, filename: str) -> List[Dict[str, str]]:
                         header_row_idx = None
                         col_code_idx = None
                         col_name_idx = None
-                        col_unit_idx = None
 
                         for r_idx, row in enumerate(table):
                             row_str = [clean_str(c) for c in row]
                             c_code = None
                             c_name = None
-                            c_unit = None
                             for c_idx, cell_text in enumerate(row_str):
                                 if not cell_text:
                                     continue
@@ -298,13 +297,10 @@ def extract_from_pdf(file_bytes: bytes, filename: str) -> List[Dict[str, str]]:
                                     c_code = c_idx
                                 elif c_name is None and is_header_match(cell_text, NAME_KEYWORDS):
                                     c_name = c_idx
-                                elif c_unit is None and is_header_match(cell_text, UNIT_KEYWORDS):
-                                    c_unit = c_idx
                             if c_code is not None and c_name is not None:
                                 header_row_idx = r_idx
                                 col_code_idx = c_code
                                 col_name_idx = c_name
-                                col_unit_idx = c_unit
                                 break
 
                         if header_row_idx is not None:
@@ -313,21 +309,25 @@ def extract_from_pdf(file_bytes: bytes, filename: str) -> List[Dict[str, str]]:
                                     continue
                                 raw_code = clean_str(row[col_code_idx])
                                 name = clean_str(row[col_name_idx])
-                                unit = clean_str(row[col_unit_idx]) if col_unit_idx is not None and len(row) > col_unit_idx else ""
 
                                 if not raw_code or not name:
                                     continue
                                 if is_header_match(raw_code, CODE_KEYWORDS) or is_header_match(name, NAME_KEYWORDS):
                                     continue
 
-                                norm_code = normalize_work_code(raw_code)
+                                # Bỏ qua dòng tiêu đề chương (không có mã chuẩn)
+                                match = re.search(r"\b([A-Za-z]{2}[\.\s_-]?\d{3,5})\b", raw_code)
+                                if not match:
+                                    continue
+
+                                norm_code = normalize_work_code(match.group(1))
                                 if norm_code not in seen_codes:
                                     seen_codes.add(norm_code)
                                     records.append({
                                         "code": norm_code,
                                         "raw_code": raw_code,
                                         "name": name,
-                                        "unit": extract_first_unit(unit)
+                                        "unit": ""
                                     })
         except Exception:
             pass
@@ -337,6 +337,9 @@ def extract_from_pdf(file_bytes: bytes, filename: str) -> List[Dict[str, str]]:
         try:
             import pypdf
             reader = pypdf.PdfReader(io.BytesIO(file_bytes))
+            # Pattern trích xuất: Mã hiệu ở đầu, sau đó là Nội dung công việc, có thể kèm số trang ở cuối
+            toc_line_pat = re.compile(r"^\s*([A-Za-z]{2}[\.\s_-]?\d{3,5})\s+(.*?)(?:\s+\d+)?\s*$")
+
             for page in reader.pages:
                 text = page.extract_text() or ""
                 lines = text.splitlines()
@@ -344,27 +347,44 @@ def extract_from_pdf(file_bytes: bytes, filename: str) -> List[Dict[str, str]]:
                     line = clean_str(line)
                     if not line:
                         continue
-                    # Tìm mẫu mã CV: ví dụ AB.12345 hoặc AF.1234
-                    match = re.search(r"\b([A-Za-z]{2}[\.\s_-]?\d{1,5})\b", line)
-                    if match:
-                        raw_code = match.group(1).strip()
+
+                    # Thử khớp dòng bắt đầu bằng Mã hiệu
+                    m = toc_line_pat.match(line)
+                    if m:
+                        raw_code = m.group(1).strip()
                         norm_code = normalize_work_code(raw_code)
-                        if WORK_CODE_PATTERN.match(norm_code) and norm_code not in seen_codes:
+                        name_raw = m.group(2).strip()
+                        # Làm sạch dấu chấm leader (...... 15) và dấu gạch
+                        name_clean = re.sub(r"[\.\s_–—]+$", "", name_raw).strip()
+                        name_clean = re.sub(r"^[-–—:.\s]+", "", name_clean).strip()
+
+                        if len(name_clean) >= 2 and norm_code not in seen_codes:
+                            seen_codes.add(norm_code)
+                            records.append({
+                                "code": norm_code,
+                                "raw_code": raw_code,
+                                "name": name_clean,
+                                "unit": ""
+                            })
+                    else:
+                        # Thử quét mã nằm trong dòng (trường hợp có cột STT đứng trước mã hiệu)
+                        match = re.search(r"\b([A-Za-z]{2}[\.\s_-]?\d{3,5})\b", line)
+                        if match:
+                            raw_code = match.group(1).strip()
+                            norm_code = normalize_work_code(raw_code)
                             remainder = line[match.end():].strip()
+                            # Loại bỏ số trang cuối dòng nếu có
+                            remainder = re.sub(r"\s+\d+\s*$", "", remainder).strip()
+                            remainder = re.sub(r"[\.\s_–—]+$", "", remainder).strip()
                             remainder = re.sub(r"^[-–—:.\s]+", "", remainder).strip()
-                            if len(remainder) >= 3:
-                                parts = remainder.rsplit(None, 1)
-                                unit = ""
-                                name = remainder
-                                if len(parts) == 2 and any(u in parts[1].lower() for u in ["m", "m2", "m3", "tấn", "kg", "cái", "bộ", "100m", "100m2", "100m3", "km"]):
-                                    name = parts[0].strip()
-                                    unit = parts[1].strip()
+
+                            if len(remainder) >= 2 and norm_code not in seen_codes:
                                 seen_codes.add(norm_code)
                                 records.append({
                                     "code": norm_code,
                                     "raw_code": raw_code,
-                                    "name": name,
-                                    "unit": extract_first_unit(unit)
+                                    "name": remainder,
+                                    "unit": ""
                                 })
         except Exception as e:
             if not records:

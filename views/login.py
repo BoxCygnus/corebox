@@ -81,22 +81,25 @@ def render_login_view(lang: str):
 
     with col_right:
         safe_html(f"""
-        <div style="padding-top: 3.5rem; max-width: 440px;">
+        <div style="
+          padding-top: 4rem;
+          max-width: 440px;
+          margin: 0 auto;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+        ">
           <div style="
-            font-size: 2rem;
+            font-size: 2.1rem;
             font-weight: 700;
             color: #ffffff;
             letter-spacing: -0.02em;
-            margin-bottom: 0.4rem;
+            margin-bottom: 1.8rem;
+            text-align: center;
           ">
             {t('login_welcome_back', lang)}
-          </div>
-          <div style="
-            font-size: 0.95rem;
-            color: #94a3b8;
-            margin-bottom: 2rem;
-          ">
-            {t('login_sync_subtitle', lang)}
           </div>
 
           <!-- Official Google Identity Services Container -->
@@ -109,18 +112,33 @@ def render_login_view(lang: str):
                data-locale="{lang}">
           </div>
           
-          <div class="google-btn-wrapper" style="margin: 1.5rem 0; min-height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: transparent !important; color-scheme: light !important; width: 100%;">
-            <!-- Single Slot for Google rendered standard button -->
-            <div id="google-signin-btn-slot" style="background: transparent !important; color-scheme: light !important; min-width: 320px; display: flex; justify-content: center;"></div>
+          <div class="google-btn-wrapper" style="
+            margin: 1rem 0 2rem 0;
+            min-height: 54px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+          ">
+            <!-- Google Sign-in Slot with Pill Shape styling like Image 5 -->
+            <div id="google-signin-btn-slot" style="
+              min-width: 340px;
+              min-height: 52px;
+              display: flex;
+              justify-content: center;
+              filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.4));
+            "></div>
           </div>
 
-          <!-- Terms & Privacy Policy footer notice -->
+          <!-- Terms & Privacy Policy footer notice with Google policy links -->
           <div style="
-            margin-top: 2rem;
-            font-size: 0.82rem;
-            color: #64748b;
+            margin-top: 1.2rem;
+            font-size: 0.85rem;
+            color: #94a3b8;
             line-height: 1.6;
             text-align: center;
+            max-width: 380px;
           ">
             {t('login_terms_privacy', lang)}
           </div>
