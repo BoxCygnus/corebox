@@ -48,7 +48,7 @@ def render_top_navbar(lang: str, current_page: str = "home"):
         avatar_initial = (user_display_name[0] if user_display_name else "U").upper()
         role = current_user.get("role", "user")
         status = current_user.get("status", "pending")
-        role_display = "👑 ADMIN" if user_is_admin else ("🟢 ACTIVE" if status == "active" else "⏳ CHỜ DUYỆT")
+        role_display = "👑 ADMIN" if user_is_admin else (f"🟢 {t('status_active', lang)}" if status == "active" else f"⏳ {t('status_pending', lang)}")
 
         if user_is_admin:
             admin_dropdown_item = f'<a href="?page=users&lang={lang}{u_param}" onclick="return window.coreboxNav(\'users\', \'{lang}\', event)" target="_self" class="nav-sub-link">👥 {t("nav_users", lang)}</a>'

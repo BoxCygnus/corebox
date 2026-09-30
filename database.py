@@ -233,33 +233,43 @@ class Database:
                     "uploaded_at": now_str
                 }
 
-        # Synchronize with browser localStorage if any stored accounts exist
-        browser_users = load_browser_users()
-        if browser_users:
-            for b_email, b_data in browser_users.items():
-                self._users[b_email] = b_data
-                if self.use_d1 or self.has_sqlite:
-                    existing = self.execute("SELECT email FROM users WHERE email = ?", (b_email,))
-                    if not existing:
-                        self.execute(
-                            "INSERT INTO users (email, full_name, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
-                            (b_email, b_data.get("full_name", ""), b_data.get("role", "user"), b_data.get("status", "pending"), b_data.get("created_at", now_str), b_data.get("updated_at", now_str))
-                        )
-                    else:
-                        self.execute(
-                            "UPDATE users SET role = ?, status = ?, updated_at = ? WHERE email = ?",
-                            (b_data.get("role", "user"), b_data.get("status", "pending"), b_data.get("updated_at", now_str), b_email)
-                        )
+        # 1. Synchronize with data/users.json if mounted from browser localStorage
+        users_file = os.path.join(os.path.dirname(__file__), "data", "users.json")
+        if os.path.exists(users_file):
+            try:
+                with open(users_file, "r", encoding="utf-8") as uf:
+                    b_users = json.load(uf)
+                if isinstance(b_users, dict):
+                    for b_email, b_data in b_users.items():
+                        self._users[b_email] = b_data
+                        if self.use_d1 or self.has_sqlite:
+                            existing = self.execute("SELECT email FROM users WHERE email = ?", (b_email,))
+                            if not existing:
+                                self.execute(
+                                    "INSERT INTO users (email, full_name, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+                                    (b_email, b_data.get("full_name", ""), b_data.get("role", "user"), b_data.get("status", "pending"), b_data.get("created_at", now_str), b_data.get("updated_at", now_str))
+                                )
+                            else:
+                                self.execute(
+                                    "UPDATE users SET role = ?, status = ?, updated_at = ? WHERE email = ?",
+                                    (b_data.get("role", "user"), b_data.get("status", "pending"), b_data.get("updated_at", now_str), b_email)
+                                )
+            except Exception as e:
+                print("Error loading users.json:", e)
+
+        # 2. Synchronize with data/catalog.json if mounted from browser localStorage
+        catalog_file = os.path.join(os.path.dirname(__file__), "data", "catalog.json")
+        if os.path.exists(catalog_file):
+            try:
+                with open(catalog_file, "r", encoding="utf-8") as cf:
+                    cat_content = cf.read()
+                self.import_catalog_json(cat_content)
+            except Exception as e:
+                print("Error loading catalog.json:", e)
         else:
-            # Save default state
-            save_browser_users({admin_email: {
-                "email": admin_email,
-                "full_name": "System Administrator",
-                "role": "admin",
-                "status": "active",
-                "created_at": now_str,
-                "updated_at": now_str
-            }})
+            # Seed default records only if empty
+            if self.count_work_codes() == 0:
+                self.seed_default_codes()
 
     # ================= User Management =================
     def _sync_all_to_browser(self):
@@ -527,6 +537,87 @@ class Database:
                         continue
                 cnt += 1
             return cnt
+
+    def seed_default_codes(self):
+        now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        admin_email = config.ADMIN_EMAIL.strip().lower()
+        if self.use_d1 or self.has_sqlite:
+            self.execute("DELETE FROM work_codes WHERE source_file = 'danh_muc_chuan_2024.xlsx'")
+            self.execute("DELETE FROM uploaded_files WHERE filename = 'danh_muc_chuan_2024.xlsx'")
+            for r in DEFAULT_SEED_CODES:
+                self.execute(
+                    "INSERT INTO work_codes (code, raw_code, name, unit, source_file, created_at) "
+                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    (r["code"], r.get("raw_code", r["code"]), r["name"], r.get("unit", ""), r["source_file"], now_str)
+                )
+            self.execute(
+                "INSERT INTO uploaded_files (filename, total_records, uploaded_by, uploaded_at) "
+                "VALUES ('danh_muc_chuan_2024.xlsx', ?, ?, ?)",
+                (len(DEFAULT_SEED_CODES), admin_email, now_str)
+            )
+        else:
+            self._work_codes = []
+            for r in DEFAULT_SEED_CODES:
+                self._work_codes.append({
+                    "code": r["code"],
+                    "raw_code": r["raw_code"],
+                    "name": r["name"],
+                    "unit": r["unit"],
+                    "source_file": r["source_file"],
+                    "created_at": now_str
+                })
+            self._uploaded_files = {
+                "danh_muc_chuan_2024.xlsx": {
+                    "filename": "danh_muc_chuan_2024.xlsx",
+                    "total_records": len(DEFAULT_SEED_CODES),
+                    "uploaded_by": admin_email,
+                    "uploaded_at": now_str
+                }
+            }
+
+    def get_all_work_codes(self) -> List[Dict[str, Any]]:
+        if self.use_d1 or self.has_sqlite:
+            return self.execute("SELECT code, raw_code, name, unit, source_file, created_at FROM work_codes ORDER BY code ASC")
+        codes = list(self._work_codes)
+        codes.sort(key=lambda x: x.get("code", ""))
+        return codes
+
+    def export_catalog_json(self) -> str:
+        data = {
+            "uploaded_files": self.get_uploaded_files(),
+            "work_codes": self.get_all_work_codes()
+        }
+        return json.dumps(data, ensure_ascii=False)
+
+    def import_catalog_json(self, cat_content: str):
+        if not cat_content:
+            return
+        try:
+            data = json.loads(cat_content) if isinstance(cat_content, str) else cat_content
+            if not isinstance(data, dict):
+                return
+            u_files = data.get("uploaded_files", [])
+            w_codes = data.get("work_codes", [])
+            now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            if self.use_d1 or self.has_sqlite:
+                self.execute("DELETE FROM work_codes")
+                self.execute("DELETE FROM uploaded_files")
+                for f in u_files:
+                    self.execute(
+                        "INSERT INTO uploaded_files (filename, total_records, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?)",
+                        (f.get("filename", ""), f.get("total_records", 0), f.get("uploaded_by", ""), f.get("uploaded_at", now_str))
+                    )
+                for c in w_codes:
+                    self.execute(
+                        "INSERT INTO work_codes (code, raw_code, name, unit, source_file, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                        (c.get("code", ""), c.get("raw_code", c.get("code", "")), c.get("name", ""), c.get("unit", ""), c.get("source_file", ""), c.get("created_at", now_str))
+                    )
+            else:
+                self._uploaded_files = {f["filename"]: f for f in u_files if "filename" in f}
+                self._work_codes = list(w_codes)
+        except Exception as e:
+            print("Failed to import catalog JSON:", e)
 
     def get_all_codes_lookup(self) -> Dict[str, Dict[str, str]]:
         if self.use_d1 or self.has_sqlite:

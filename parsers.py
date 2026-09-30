@@ -232,75 +232,143 @@ def extract_from_docx(file_bytes: bytes, filename: str) -> List[Dict[str, str]]:
                         "unit": extract_first_unit(unit)
                     })
 
+    # Fallback for Word files without explicit tables (lists in paragraphs)
+    if not records:
+        for p in doc.paragraphs:
+            text = clean_str(p.text)
+            if not text:
+                continue
+            match = re.search(r"\b([A-Za-z]{2}[\.\s_-]?\d{1,5})\b", text)
+            if match:
+                raw_code = match.group(1).strip()
+                norm_code = normalize_work_code(raw_code)
+                if WORK_CODE_PATTERN.match(norm_code) and norm_code not in seen_codes:
+                    remainder = text[match.end():].strip()
+                    remainder = re.sub(r"^[-–—:.\s]+", "", remainder).strip()
+                    if len(remainder) >= 3:
+                        parts = remainder.rsplit(None, 1)
+                        unit = ""
+                        name = remainder
+                        if len(parts) == 2 and any(u in parts[1].lower() for u in ["m", "m2", "m3", "tấn", "kg", "cái", "bộ", "100m", "100m2", "100m3", "km"]):
+                            name = parts[0].strip()
+                            unit = parts[1].strip()
+                        seen_codes.add(norm_code)
+                        records.append({
+                            "code": norm_code,
+                            "raw_code": raw_code,
+                            "name": name,
+                            "unit": extract_first_unit(unit)
+                        })
+
     return records
 
 # ================= 3. PDF CATALOG PARSER =================
 def extract_from_pdf(file_bytes: bytes, filename: str) -> List[Dict[str, str]]:
     """
-    Trích xuất bảng từ PDF:
-    Dùng pdfplumber để trích xuất các bảng, bỏ qua văn bản ngoài bảng.
+    Trích xuất bảng và danh mục từ PDF:
+    1. Ưu tiên pdfplumber (nếu có môi trường local/server).
+    2. Tự động hỗ trợ pypdf trích xuất text thông minh theo từng dòng cho Pyodide/trình duyệt.
     """
-    if pdfplumber is None:
-        raise RuntimeError("Trích xuất PDF chưa được hỗ trợ trên trình duyệt này. Vui lòng chuyển đổi sang tệp Excel (.xlsx) hoặc Word (.docx).")
-
     records = []
     seen_codes = set()
 
-    with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-        for page in pdf.pages:
-            tables = page.extract_tables()
-            for table in tables:
-                if not table:
-                    continue
-                
-                header_row_idx = None
-                col_code_idx = None
-                col_name_idx = None
-                col_unit_idx = None
-
-                for r_idx, row in enumerate(table):
-                    row_str = [clean_str(c) for c in row]
-                    c_code = None
-                    c_name = None
-                    c_unit = None
-                    for c_idx, cell_text in enumerate(row_str):
-                        if not cell_text:
+    # 1. Thử qua pdfplumber nếu có
+    if pdfplumber is not None:
+        try:
+            with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+                for page in pdf.pages:
+                    tables = page.extract_tables() or []
+                    for table in tables:
+                        if not table:
                             continue
-                        if c_code is None and is_header_match(cell_text, CODE_KEYWORDS):
-                            c_code = c_idx
-                        elif c_name is None and is_header_match(cell_text, NAME_KEYWORDS):
-                            c_name = c_idx
-                        elif c_unit is None and is_header_match(cell_text, UNIT_KEYWORDS):
-                            c_unit = c_idx
-                    if c_code is not None and c_name is not None:
-                        header_row_idx = r_idx
-                        col_code_idx = c_code
-                        col_name_idx = c_name
-                        col_unit_idx = c_unit
-                        break
+                        header_row_idx = None
+                        col_code_idx = None
+                        col_name_idx = None
+                        col_unit_idx = None
 
-                if header_row_idx is not None:
-                    for row in table[header_row_idx + 1:]:
-                        if len(row) <= max(col_code_idx, col_name_idx):
-                            continue
-                        raw_code = clean_str(row[col_code_idx])
-                        name = clean_str(row[col_name_idx])
-                        unit = clean_str(row[col_unit_idx]) if col_unit_idx is not None and len(row) > col_unit_idx else ""
+                        for r_idx, row in enumerate(table):
+                            row_str = [clean_str(c) for c in row]
+                            c_code = None
+                            c_name = None
+                            c_unit = None
+                            for c_idx, cell_text in enumerate(row_str):
+                                if not cell_text:
+                                    continue
+                                if c_code is None and is_header_match(cell_text, CODE_KEYWORDS):
+                                    c_code = c_idx
+                                elif c_name is None and is_header_match(cell_text, NAME_KEYWORDS):
+                                    c_name = c_idx
+                                elif c_unit is None and is_header_match(cell_text, UNIT_KEYWORDS):
+                                    c_unit = c_idx
+                            if c_code is not None and c_name is not None:
+                                header_row_idx = r_idx
+                                col_code_idx = c_code
+                                col_name_idx = c_name
+                                col_unit_idx = c_unit
+                                break
 
-                        if not raw_code or not name:
-                            continue
-                        if is_header_match(raw_code, CODE_KEYWORDS) or is_header_match(name, NAME_KEYWORDS):
-                            continue
+                        if header_row_idx is not None:
+                            for row in table[header_row_idx + 1:]:
+                                if len(row) <= max(col_code_idx, col_name_idx):
+                                    continue
+                                raw_code = clean_str(row[col_code_idx])
+                                name = clean_str(row[col_name_idx])
+                                unit = clean_str(row[col_unit_idx]) if col_unit_idx is not None and len(row) > col_unit_idx else ""
 
+                                if not raw_code or not name:
+                                    continue
+                                if is_header_match(raw_code, CODE_KEYWORDS) or is_header_match(name, NAME_KEYWORDS):
+                                    continue
+
+                                norm_code = normalize_work_code(raw_code)
+                                if norm_code not in seen_codes:
+                                    seen_codes.add(norm_code)
+                                    records.append({
+                                        "code": norm_code,
+                                        "raw_code": raw_code,
+                                        "name": name,
+                                        "unit": extract_first_unit(unit)
+                                    })
+        except Exception:
+            pass
+
+    # 2. Hỗ trợ pypdf (thư viện thuần Python, hoạt động hoàn hảo trên WebAssembly/Pyodide)
+    if not records:
+        try:
+            import pypdf
+            reader = pypdf.PdfReader(io.BytesIO(file_bytes))
+            for page in reader.pages:
+                text = page.extract_text() or ""
+                lines = text.splitlines()
+                for line in lines:
+                    line = clean_str(line)
+                    if not line:
+                        continue
+                    # Tìm mẫu mã CV: ví dụ AB.12345 hoặc AF.1234
+                    match = re.search(r"\b([A-Za-z]{2}[\.\s_-]?\d{1,5})\b", line)
+                    if match:
+                        raw_code = match.group(1).strip()
                         norm_code = normalize_work_code(raw_code)
-                        if norm_code not in seen_codes:
-                            seen_codes.add(norm_code)
-                            records.append({
-                                "code": norm_code,
-                                "raw_code": raw_code,
-                                "name": name,
-                                "unit": extract_first_unit(unit)
-                            })
+                        if WORK_CODE_PATTERN.match(norm_code) and norm_code not in seen_codes:
+                            remainder = line[match.end():].strip()
+                            remainder = re.sub(r"^[-–—:.\s]+", "", remainder).strip()
+                            if len(remainder) >= 3:
+                                parts = remainder.rsplit(None, 1)
+                                unit = ""
+                                name = remainder
+                                if len(parts) == 2 and any(u in parts[1].lower() for u in ["m", "m2", "m3", "tấn", "kg", "cái", "bộ", "100m", "100m2", "100m3", "km"]):
+                                    name = parts[0].strip()
+                                    unit = parts[1].strip()
+                                seen_codes.add(norm_code)
+                                records.append({
+                                    "code": norm_code,
+                                    "raw_code": raw_code,
+                                    "name": name,
+                                    "unit": extract_first_unit(unit)
+                                })
+        except Exception as e:
+            if not records:
+                raise RuntimeError(f"Lỗi trích xuất PDF: {e}")
 
     return records
 

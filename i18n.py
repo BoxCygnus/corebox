@@ -26,6 +26,12 @@ TRANSLATIONS = {
         "explore_tools": "Khám phá công cụ →",
         
         # Auth & Approval
+        "btn_reload_page": "Tải lại trang",
+        "status_pending": "CHỜ DUYỆT",
+        "status_active": "ĐÃ KÍCH HOẠT",
+        "repo_update_section": "Cập nhật tệp danh mục",
+        "repo_files_section_collapsible": "Quản lý các tệp danh mục đã tải lên",
+        "master_view_section_collapsible": "Danh mục tổng hợp toàn bộ Kho Dữ Liệu",
         "pending_title": "Tài khoản đang chờ phê duyệt",
         "pending_message": "Tài khoản của bạn ({email}) đã đăng nhập thành công nhưng đang chờ Admin ({admin_email}) phê duyệt. Vui lòng liên hệ quản trị viên.",
         "pending_tip": "Sau khi Admin phê duyệt, vui lòng tải lại trang để truy cập đầy đủ các tính năng của Corebox.",
@@ -213,6 +219,12 @@ TRANSLATIONS = {
         "explore_tools": "Explore the tools →",
         
         # Auth & Approval
+        "btn_reload_page": "Reload page",
+        "status_pending": "PENDING",
+        "status_active": "ACTIVE",
+        "repo_update_section": "Update Catalog Files",
+        "repo_files_section_collapsible": "Manage Uploaded Catalog Files",
+        "master_view_section_collapsible": "Master Work Codes Repository",
         "pending_title": "Account Pending Approval",
         "pending_message": "Your account ({email}) has successfully signed in but is currently pending approval by Admin ({admin_email}). Please contact your administrator.",
         "pending_tip": "Once approved by the Administrator, please reload this page to access all Corebox features.",

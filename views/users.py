@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import config
 from i18n import t, format_datetime_by_lang
 from database import db
@@ -15,6 +16,11 @@ def render_users_view(lang: str):
         st.error(t("access_denied", lang, admin_email=config.ADMIN_EMAIL))
         st.info(t("admin_access_hint", lang))
         return
+
+    # Check for pending JS sync from previous action
+    if "user_sync_js" in st.session_state and st.session_state["user_sync_js"]:
+        js_code = st.session_state.pop("user_sync_js")
+        components.html(f"<script>{js_code}</script>", height=0, width=0)
 
     st.markdown(f"## 👥 {t('user_mgmt_title', lang)}")
     st.caption(t('user_mgmt_desc', lang))
@@ -41,11 +47,21 @@ def render_users_view(lang: str):
                 with col_btn1:
                     if st.button(f"✅ {t('btn_approve', lang)}", key=f"btn_app_{idx}_{u_email}", use_container_width=True, type="primary"):
                         db.update_user_status(u_email, "active")
+                        st.session_state["user_sync_js"] = f"""
+                        if (window.parent && window.parent.coreboxUpdateUserStatus) {{
+                            window.parent.coreboxUpdateUserStatus('{u_email}', 'active');
+                        }}
+                        """
                         st.success(t("msg_approved_success", lang, email=u_email))
                         st.rerun()
                 with col_btn2:
                     if st.button(f"❌ {t('btn_reject', lang)}", key=f"btn_rej_{idx}_{u_email}", use_container_width=True):
                         db.update_user_status(u_email, "rejected")
+                        st.session_state["user_sync_js"] = f"""
+                        if (window.parent && window.parent.coreboxUpdateUserStatus) {{
+                            window.parent.coreboxUpdateUserStatus('{u_email}', 'rejected');
+                        }}
+                        """
                         st.warning(t("msg_rejected_success", lang, email=u_email))
                         st.rerun()
 
@@ -75,10 +91,20 @@ def render_users_view(lang: str):
                         with btn_c1:
                             if st.button(t("btn_suspend", lang), key=f"btn_lock_{idx}_{u_email}", use_container_width=True):
                                 db.update_user_status(u_email, "pending")
+                                st.session_state["user_sync_js"] = f"""
+                                if (window.parent && window.parent.coreboxUpdateUserStatus) {{
+                                    window.parent.coreboxUpdateUserStatus('{u_email}', 'pending');
+                                }}
+                                """
                                 st.rerun()
                         with btn_c2:
                             if st.button(t("btn_delete", lang), key=f"btn_del_{idx}_{u_email}", use_container_width=True):
                                 db.delete_user(u_email)
+                                st.session_state["user_sync_js"] = f"""
+                                if (window.parent && window.parent.coreboxDeleteUser) {{
+                                    window.parent.coreboxDeleteUser('{u_email}');
+                                }}
+                                """
                                 st.rerun()
                     else:
                         st.markdown(
@@ -100,4 +126,10 @@ def render_users_view(lang: str):
                 with col_b:
                     if st.button(t("btn_restore", lang), key=f"btn_restore_{idx}_{u_email}"):
                         db.update_user_status(u_email, "active")
+                        st.session_state["user_sync_js"] = f"""
+                        if (window.parent && window.parent.coreboxUpdateUserStatus) {{
+                            window.parent.coreboxUpdateUserStatus('{u_email}', 'active');
+                        }}
+                        """
                         st.rerun()
+

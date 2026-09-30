@@ -91,7 +91,11 @@ def get_custom_css() -> str:
         color: #64748b !important;
     }
 
-    [data-testid="stAppViewContainer"] {
+    [data-testid="stAppViewContainer"],
+    [data-testid="stApp"],
+    .stApp,
+    section[data-testid="stMain"],
+    section.main {
         padding-top: 0 !important;
         margin-top: 0 !important;
     }
@@ -115,7 +119,7 @@ def get_custom_css() -> str:
     }
 
     /* ============================================================== */
-    /* CUSTOM TOP NAVBAR (Frozen / Sticky at top, 1cm margin from top)*/
+    /* CUSTOM TOP NAVBAR (Frozen / Sticky at top, flush under browser bar)*/
     /* ============================================================== */
     .corebox-navbar-container {
         position: sticky !important;
@@ -123,10 +127,10 @@ def get_custom_css() -> str:
         z-index: 10000;
         background-color: #0b0e17 !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        padding-top: 1cm !important; /* Căn lề trên 1cm khi ở mức 100% giao diện */
-        padding-bottom: 0.65rem !important;
+        padding-top: 0rem !important; /* Căn sát mép trên trình duyệt Edge */
+        padding-bottom: 0.55rem !important;
         margin-top: 0 !important;
-        margin-bottom: 1.5rem !important;
+        margin-bottom: 1.2rem !important;
         width: 100%;
         box-sizing: border-box;
     }

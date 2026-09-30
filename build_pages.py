@@ -268,10 +268,112 @@ def build_pages_app():
       return false;
     }};
 
-    window.handleGoogleCredentialResponse = function(response) {{
+    window.coreboxUpdateUserStatus = async function(email, status) {{
+      if (!email) return;
+      const e = email.toLowerCase().trim();
+      const nowStr = new Date().toISOString().replace("T", " ").substring(0, 19);
+      try {{
+        let uStore = JSON.parse(localStorage.getItem("corebox_users_store") || "{{}}");
+        if (uStore[e]) {{
+          uStore[e].status = status;
+          uStore[e].updated_at = nowStr;
+          localStorage.setItem("corebox_users_store", JSON.stringify(uStore));
+        }}
+      }} catch (err) {{}}
+      try {{
+        await fetch("/api/users", {{
+          method: "POST",
+          headers: {{ "Content-Type": "application/json" }},
+          body: JSON.stringify({{ action: "update_status", email: e, status: status }})
+        }});
+      }} catch (err) {{
+        console.error("API update status error:", err);
+      }}
+    }};
+
+    window.coreboxDeleteUser = async function(email) {{
+      if (!email) return;
+      const e = email.toLowerCase().trim();
+      try {{
+        let uStore = JSON.parse(localStorage.getItem("corebox_users_store") || "{{}}");
+        delete uStore[e];
+        localStorage.setItem("corebox_users_store", JSON.stringify(uStore));
+      }} catch (err) {{}}
+      try {{
+        await fetch("/api/users", {{
+          method: "POST",
+          headers: {{ "Content-Type": "application/json" }},
+          body: JSON.stringify({{ action: "delete", email: e }})
+        }});
+      }} catch (err) {{
+        console.error("API delete user error:", err);
+      }}
+    }};
+
+    window.coreboxSaveCatalog = async function(catalogJsonStr) {{
+      if (!catalogJsonStr) return;
+      try {{
+        localStorage.setItem("corebox_catalog_store", catalogJsonStr);
+      }} catch (err) {{}}
+      try {{
+        await fetch("/api/catalog", {{
+          method: "POST",
+          headers: {{ "Content-Type": "application/json" }},
+          body: catalogJsonStr
+        }});
+      }} catch (err) {{
+        console.error("API save catalog error:", err);
+      }}
+    }};
+
+    window.handleGoogleCredentialResponse = async function(response) {{
       if (!response || !response.credential) return;
+      let email = null;
+      let name = null;
+      try {{
+        const parts = response.credential.split('.');
+        if (parts.length === 3) {{
+          const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+          email = (payload.email || '').toLowerCase().trim();
+          name = payload.name || email.split('@')[0];
+        }}
+      }} catch (e) {{
+        console.error("JWT parse error:", e);
+      }}
+
+      if (email) {{
+        const isAdmin = (email === "happyclone96@gmail.com");
+        // Save to localStorage immediately
+        try {{
+          let uStore = JSON.parse(localStorage.getItem("corebox_users_store") || "{{}}");
+          if (!uStore[email]) {{
+            uStore[email] = {{
+              email: email,
+              full_name: name || email.split('@')[0],
+              role: isAdmin ? "admin" : "user",
+              status: isAdmin ? "active" : "pending",
+              created_at: new Date().toISOString().replace("T", " ").substring(0, 19),
+              updated_at: new Date().toISOString().replace("T", " ").substring(0, 19)
+            }};
+          }}
+          localStorage.setItem("corebox_users_store", JSON.stringify(uStore));
+        }} catch (e) {{}}
+
+        // Send to Cloudflare KV via /api/users
+        try {{
+          await fetch("/api/users", {{
+            method: "POST",
+            headers: {{ "Content-Type": "application/json" }},
+            body: JSON.stringify({{ email: email, full_name: name, role: isAdmin ? "admin" : "user", status: isAdmin ? "active" : "pending" }})
+          }});
+        }} catch (e) {{
+          console.error("API user sync error:", e);
+        }}
+      }}
+
       const url = new URL(window.location);
       url.searchParams.set("page", "home");
+      if (email) url.searchParams.set("u", email);
       url.searchParams.set("g_token", response.credential);
       window.location.href = url.toString();
     }};
@@ -327,22 +429,49 @@ def build_pages_app():
       loadStatus.innerText = "Đang tải thư viện Python & Công cụ QLDA...";
 
       try {{
-        // Check if running on Cloudflare Access / Pages Functions to inject user email
-        let cfUserEmail = null;
+        // Pre-mount sync: fetch latest users and catalog from Cloudflare KV / localStorage
         try {{
-          const res = await fetch("/api/user");
-          if (res.ok) {{
-            const data = await res.json();
-            if (data.email) cfUserEmail = data.email;
+          const fetchUsers = fetch("/api/users").then(r => r.ok ? r.json() : null).catch(() => null);
+          const fetchCatalog = fetch("/api/catalog").then(r => r.ok ? r.json() : null).catch(() => null);
+          const timeout = new Promise(resolve => setTimeout(resolve, 2000));
+
+          const [usersRes, catRes] = await Promise.race([
+            Promise.all([fetchUsers, fetchCatalog]),
+            timeout.then(() => [null, null])
+          ]);
+
+          let usersStore = {{}};
+          if (usersRes && usersRes.users) {{
+            usersStore = usersRes.users;
+            try {{ localStorage.setItem("corebox_users_store", JSON.stringify(usersStore)); }} catch(e){{}}
+          }} else {{
+            try {{ usersStore = JSON.parse(localStorage.getItem("corebox_users_store") || "{{}}"); }} catch(e){{}}
           }}
-        }} catch(e) {{}}
+          if (usersStore && Object.keys(usersStore).length > 0) {{
+            bundledFiles["data/users.json"] = JSON.stringify(usersStore);
+          }}
+
+          let catStore = null;
+          if (catRes && catRes.catalog) {{
+            catStore = catRes.catalog;
+            try {{ localStorage.setItem("corebox_catalog_store", JSON.stringify(catStore)); }} catch(e){{}}
+          }} else {{
+            try {{ catStore = JSON.parse(localStorage.getItem("corebox_catalog_store") || "null"); }} catch(e){{}}
+          }}
+          if (catStore) {{
+            bundledFiles["data/catalog.json"] = JSON.stringify(catStore);
+          }}
+        }} catch (e) {{
+          console.error("Pre-mount sync error:", e);
+        }}
 
         stlite.mount({{
           requirements: [
             "openpyxl",
             "python-docx",
             "pandas",
-            "xlsxwriter"
+            "xlsxwriter",
+            "pypdf"
           ],
           entrypoint: "app.py",
           files: bundledFiles,
@@ -381,6 +510,15 @@ def build_pages_app():
     with open(public_index, "w", encoding="utf-8") as f:
         f.write(html_content)
     print(f"Generated Cloudflare Pages package: {public_index}")
+
+    # Also copy _worker.js and _routes.json to public/ if present
+    import shutil
+    for fn in ["_worker.js", "_routes.json"]:
+        src = os.path.join(base_dir, fn)
+        dst = os.path.join(public_dir, fn)
+        if os.path.exists(src):
+            shutil.copy2(src, dst)
+            print(f"Copied {fn} to {public_dir}")
 
     # Also write to root index.html (in case user configures Pages with root directory)
     root_index = os.path.join(base_dir, "index.html")

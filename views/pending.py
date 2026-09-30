@@ -30,7 +30,7 @@ def render_pending_view(lang: str):
     with col2:
         subc1, subc2 = st.columns(2)
         with subc1:
-            if st.button("🔄 Tải lại trang", key="btn_reload_pending", use_container_width=True):
+            if st.button(f"🔄 {t('btn_reload_page', lang)}", key="btn_reload_pending", use_container_width=True):
                 st.rerun()
         with subc2:
             if st.button(f"🚪 {t('nav_logout', lang)}", key="btn_logout_pending", use_container_width=True):
