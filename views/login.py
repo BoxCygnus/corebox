@@ -29,7 +29,7 @@ def render_login_view(lang: str):
     # Top Bar with Back Button
     top_html = """
     <div style="margin-bottom: 2rem; padding: 0.5rem 0;">
-      <a href="?page=home&lang={lang}" onclick="return window.coreboxNav('home', '{lang}', event)" target="_self" class="login-back-btn" style="
+      <a href="?page=home&lang=__LANG__" onclick="return window.coreboxNav('home', '__LANG__', event)" target="_self" class="login-back-btn" style="
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
@@ -43,10 +43,10 @@ def render_login_view(lang: str):
         border: 1px solid rgba(255, 255, 255, 0.08);
         transition: all 0.2s ease;
       ">
-        {btn_back_text}
+        __BTN_BACK_TEXT__
       </a>
     </div>
-    """.format(lang=lang, btn_back_text=btn_back_text)
+    """.replace("__LANG__", lang).replace("__BTN_BACK_TEXT__", btn_back_text)
     safe_html(top_html)
 
     col_left, col_space, col_right = st.columns([1.1, 0.15, 1.0])
@@ -71,7 +71,7 @@ def render_login_view(lang: str):
             margin-bottom: 1.5rem;
             max-width: 520px;
           ">
-            {subtitle_text}
+            __SUBTITLE_TEXT__
           </div>
           <div style="
             font-size: 0.95rem;
@@ -80,14 +80,14 @@ def render_login_view(lang: str):
             margin-bottom: 3rem;
             max-width: 500px;
           ">
-            {desc_text}
+            __DESC_TEXT__
           </div>
 
           <div style="font-size: 0.85rem; color: #64748b; line-height: 1.6; max-width: 480px;">
-            {footnote_text}
+            __FOOTNOTE_TEXT__
           </div>
         </div>
-        """.format(subtitle_text=subtitle_text, desc_text=desc_text, footnote_text=footnote_text)
+        """.replace("__SUBTITLE_TEXT__", subtitle_text).replace("__DESC_TEXT__", desc_text).replace("__FOOTNOTE_TEXT__", footnote_text)
         safe_html(left_html)
 
     with col_right:
@@ -110,7 +110,7 @@ def render_login_view(lang: str):
             margin-bottom: 0.35rem;
             text-align: center;
           ">
-            {welcome_text}
+            __WELCOME_TEXT__
           </div>
           <div style="
             font-size: 2.75rem;
@@ -166,7 +166,7 @@ def render_login_view(lang: str):
                 <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.6H1.26C.46 8.22 0 10.05 0 12s.46 3.78 1.26 5.4l4.02-3.13z"/>
                 <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.6l4.02 3.13c.95-2.83 3.6-4.98 6.72-4.98z"/>
               </svg>
-              <span>{btn_label}</span>
+              <span>__BTN_LABEL__</span>
             </button>
           </div>
 
@@ -181,13 +181,13 @@ def render_login_view(lang: str):
             margin-left: auto;
             margin-right: auto;
           ">
-            {terms_text}
+            __TERMS_TEXT__
           </div>
         </div>
 
         <script>
           function triggerGoogleOAuth() {
-            var clientId = "{client_id}";
+            var clientId = "__CLIENT_ID__";
             var topHost = window.location.hostname;
             try {
               if (window.top && window.top.location && window.top.location.hostname) {
@@ -215,10 +215,5 @@ def render_login_view(lang: str):
             window.location.href = oauthUrl;
           }
         </script>
-        """.format(
-            welcome_text=welcome_text,
-            btn_label=btn_label,
-            terms_text=terms_text,
-            client_id=client_id
-        )
+        """.replace("__WELCOME_TEXT__", welcome_text).replace("__BTN_LABEL__", btn_label).replace("__TERMS_TEXT__", terms_text).replace("__CLIENT_ID__", client_id)
         safe_html(right_html)
