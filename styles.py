@@ -5,55 +5,109 @@ def get_custom_css() -> str:
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
 
-    /* Global reset & background */
-    html, body, [class*="css"], [data-testid="stAppViewContainer"] {
-        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
-        background-color: #0b0e17 !important;
-        color: #f1f5f9;
-        margin: 0;
-        padding: 0;
+    /* ================================================================ */
+    /* LAYER 1: HARD RESET — Xóa TOÀN BỘ margin/padding mọi phần tử   */
+    /* ================================================================ */
+    *, *::before, *::after {
+        box-sizing: border-box;
     }
 
-    /* ELIMINATE TOP GAP COMPLETELY (Pull content flush to very top) */
+    html, body {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        background-color: #0b0e17 !important;
+        color: #f1f5f9 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow-x: hidden !important;
+        width: 100% !important;
+    }
+
+    /* ================================================================ */
+    /* LAYER 2: XÓA HOÀN TOÀN HEADER/TOOLBAR/DECORATION CỦA STREAMLIT  */
+    /* ================================================================ */
     header,
     .stAppHeader,
     [data-testid="stHeader"],
     [data-testid="stToolbar"],
-    [data-testid="stDecoration"] {
-        display: none !important;
-        height: 0 !important;
-        min-height: 0 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        visibility: hidden !important;
-    }
-
-    /* HIDE STLITE LOADING TOASTS (Hình 4), REACT TOASTIFY & STREAMLIT STATUS WIDGET */
+    [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"],
+    .stStatusWidget,
+    [data-testid="stToolbarActions"],
     .Toastify__toast-container,
     .Toastify__toast,
     .Toastify__toast--default,
     .Toastify__toast--info,
     [class*="Toastify"],
     .stlite-message,
-    [data-testid="stStatusWidget"],
-    .stStatusWidget,
-    [data-testid="stToolbarActions"],
-    [data-testid="stToolbar"],
-    [data-testid="stDecoration"],
     #MainMenu,
     .stDeployButton,
     div:has(> [data-testid="stStatusWidget"]),
     div[data-testid="stStatusWidget"] * {
         display: none !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        max-height: 0 !important;
+        width: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
         visibility: hidden !important;
         opacity: 0 !important;
-        width: 0 !important;
-        height: 0 !important;
-        pointer-events: none !important;
         overflow: hidden !important;
+        pointer-events: none !important;
+        border: none !important;
     }
 
-    /* HIDE HIDDEN SPA NAVIGATION CONTROLLER BUTTONS SAFELY (ALLOW JS .click()) */
+    /* ================================================================ */
+    /* LAYER 3: XÓA TOÀN BỘ GAP TRÊN/DƯỚI/HAI BÊN CỦA STREAMLIT APP  */
+    /* Kéo Navbar sát hoàn toàn viền trình duyệt — không khoảng trống  */
+    /* ================================================================ */
+    [data-testid="stApp"],
+    .stApp,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMain"],
+    section[data-testid="stMain"],
+    section.main,
+    .main,
+    #root {
+        margin: 0 !important;
+        padding: 0 !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        min-height: 100vh !important;
+        background-color: #0b0e17 !important;
+        overflow-x: hidden !important;
+    }
+
+    /* BLOCK CONTAINER — Xóa mọi padding/margin/max-width giới hạn */
+    .main .block-container,
+    [data-testid="stMainBlockContainer"],
+    [data-testid="block-container"],
+    div[data-testid="stAppViewBlockContainer"],
+    div[class*="block-container"] {
+        padding-top: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        padding-bottom: 0 !important;
+        margin-top: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        margin-bottom: 0 !important;
+        max-width: 100vw !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* [class*="css"] reset */
+    [class*="css"] {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        background-color: #0b0e17 !important;
+    }
+
+    /* ================================================================ */
+    /* HIDE HIDDEN SPA NAVIGATION BUTTONS (but keep clickable for JS)   */
+    /* ================================================================ */
     div[data-testid="stHorizontalBlock"]:has([class*="st-key-btn_nav_"]),
     div[class*="st-key-btn_nav_"],
     div[class*="st-key-btn_lang_"],
@@ -74,7 +128,9 @@ def get_custom_css() -> str:
         pointer-events: auto !important;
     }
 
-    /* Google Sign-in button: clean white background with sleek blue border */
+    /* ================================================================ */
+    /* GOOGLE SIGN-IN BUTTON SLOT                                        */
+    /* ================================================================ */
     #google-signin-btn-slot {
         background-color: #ffffff !important;
         border: 2px solid #0ea5e9 !important;
@@ -86,6 +142,8 @@ def get_custom_css() -> str:
         overflow: hidden !important;
         transition: all 0.2s ease !important;
         box-sizing: border-box !important;
+        width: 100% !important;
+        max-width: 100% !important;
     }
 
     #google-signin-btn-slot:hover {
@@ -103,7 +161,13 @@ def get_custom_css() -> str:
         display: block !important;
     }
 
-    /* Disabled Navigation Link for Guest & Pending Accounts */
+    #corebox-google-btn {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Disabled Navigation Link */
     .nav-sub-link-disabled {
         opacity: 0.45 !important;
         cursor: not-allowed !important;
@@ -111,36 +175,9 @@ def get_custom_css() -> str:
         color: #64748b !important;
     }
 
-    [data-testid="stAppViewContainer"],
-    [data-testid="stApp"],
-    .stApp,
-    section[data-testid="stMain"],
-    section.main {
-        padding-top: 0 !important;
-        margin-top: 0 !important;
-    }
-
-    /* FULL-WIDTH LAYOUT: Xóa mọi padding/margin/max-width giới hạn chiều rộng */
-    .main, 
-    .main .block-container, 
-    [data-testid="stMainBlockContainer"], 
-    [data-testid="block-container"],
-    div[data-testid="stAppViewBlockContainer"] {
-        padding-top: 0 !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        padding-bottom: 0 !important;
-        margin-top: 0 !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        max-width: 100vw !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-    }
-
-    /* ============================================================== */
-    /* CUSTOM TOP NAVBAR (Frozen / Sticky at top, flush under browser bar) */
-    /* ============================================================== */
+    /* ================================================================ */
+    /* CUSTOM TOP NAVBAR — Flush sát viền trình duyệt, sticky           */
+    /* ================================================================ */
     .corebox-navbar-container {
         position: sticky !important;
         top: 0 !important;
@@ -152,8 +189,7 @@ def get_custom_css() -> str:
         padding-bottom: 0.45rem !important;
         padding-left: 1.8rem !important;
         padding-right: 1.8rem !important;
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
+        margin: 0 !important;
         width: 100% !important;
         box-sizing: border-box !important;
     }
@@ -171,7 +207,7 @@ def get_custom_css() -> str:
         gap: 2.2rem;
     }
 
-    /* Corebox Brand: Icon 📦 tách riêng, to hơn chữ 1 chút */
+    /* Corebox Brand */
     .brand-link-wrapper {
         display: inline-flex !important;
         align-items: center !important;
@@ -209,7 +245,7 @@ def get_custom_css() -> str:
         color: #38bdf8 !important;
     }
 
-    /* Nav Dropdown on HOVER (Không cần bấm vào, chỉ chuột là mở) */
+    /* Nav Dropdown on HOVER */
     .nav-dropdown-item {
         position: relative;
         display: inline-block;
@@ -241,7 +277,6 @@ def get_custom_css() -> str:
         color: #94a3b8;
     }
 
-    /* Dropdown Menu Container: Hiện ra khi hover (.nav-dropdown-item:hover) */
     .nav-dropdown-menu {
         display: none;
         position: absolute;
@@ -266,7 +301,6 @@ def get_custom_css() -> str:
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Mục con: Căn lề trái, tuyệt đối không có viền trắng */
     .nav-sub-link {
         display: block;
         width: 100%;
@@ -288,7 +322,7 @@ def get_custom_css() -> str:
         color: #ffffff !important;
     }
 
-    /* Bordered Search Box for Functions (Khung search có viền) */
+    /* Bordered Search Box */
     .nav-search-bordered {
         display: flex;
         align-items: center;
@@ -322,7 +356,6 @@ def get_custom_css() -> str:
         font-size: 0.85rem;
     }
 
-    /* Quick jump search dropdown on hover/focus */
     .search-dropdown-results {
         display: none;
         position: absolute;
@@ -343,7 +376,6 @@ def get_custom_css() -> str:
         animation: menuFadeIn 0.15s ease-out forwards;
     }
 
-    /* Right Group: Search, Language, Google Avatar */
     .nav-right-zone {
         display: flex;
         align-items: center;
@@ -364,9 +396,42 @@ def get_custom_css() -> str:
         box-shadow: 0 0 10px rgba(251, 191, 36, 0.35);
     }
 
-    /* ============================================================== */
-    /* HERO SECTION (Corebox lớn nổi bật, Subtitle, Description)     */
-    /* ============================================================== */
+    /* NAV LOGIN PILL BUTTON */
+    .nav-login-btn-wrapper {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .nav-login-pill-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.45rem !important;
+        padding: 0.38rem 1.1rem !important;
+        border-radius: 9999px !important;
+        background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%) !important;
+        color: #0b0f19 !important;
+        font-size: 0.9rem !important;
+        font-weight: 700 !important;
+        text-decoration: none !important;
+        border: none !important;
+        outline: none !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 2px 12px rgba(56, 189, 248, 0.35) !important;
+        letter-spacing: 0.01em !important;
+        white-space: nowrap !important;
+    }
+
+    .nav-login-pill-btn:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 20px rgba(56, 189, 248, 0.55) !important;
+        background: linear-gradient(135deg, #60c8f5 0%, #a78bfa 100%) !important;
+        color: #0b0f19 !important;
+    }
+
+    /* ================================================================ */
+    /* HERO SECTION                                                      */
+    /* ================================================================ */
     .hero-box {
         text-align: center;
         padding: 3.5rem 1rem 2.8rem 1rem;
@@ -374,7 +439,6 @@ def get_custom_css() -> str:
         margin: 0 auto;
     }
 
-    /* Corebox in đậm, font chữ nổi bật, kích thước to */
     .hero-brand-name {
         font-size: 4.2rem;
         font-weight: 800;
@@ -388,7 +452,6 @@ def get_custom_css() -> str:
         line-height: 1.1;
     }
 
-    /* Subtitle: Đơn giản hóa hành trình chuyển đổi số của bạn */
     .hero-subheadline {
         font-size: 1.55rem;
         font-weight: 600;
@@ -398,7 +461,6 @@ def get_custom_css() -> str:
         letter-spacing: -0.01em;
     }
 
-    /* Data storage, automated inspection, and other supportive tools. */
     .hero-small-desc {
         font-size: 1.05rem;
         color: #94a3b8;
@@ -451,7 +513,7 @@ def get_custom_css() -> str:
         border: 1px solid rgba(255, 255, 255, 0.08);
         text-align: center;
     }
-    
+
     .metric-val {
         font-size: 1.9rem;
         font-weight: 800;
@@ -492,28 +554,28 @@ def get_custom_css() -> str:
         color: #e2e8f0;
     }
 
-    /* HOME PAGE FULL HEIGHT CONTAINER (Center hero, push footer to bottom) */
+    /* HOME PAGE FULL HEIGHT CONTAINER */
     .home-page-container {
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
-        min-height: calc(100vh - 120px) !important;
+        min-height: calc(100vh - 60px) !important;
         box-sizing: border-box !important;
     }
 
-    /* FOOTER SÁT MÉP DƯỚI 1CM Ở MỨC 100% GIAO DIỆN */
+    /* FOOTER */
     .corebox-footer {
         text-align: center;
         padding: 0.85rem 0 !important;
         margin-top: auto !important;
-        margin-bottom: 1cm !important; /* Căn lề dưới đúng 1cm ở mức 100% */
+        margin-bottom: 1cm !important;
         color: #64748b;
         font-size: 0.85rem;
         letter-spacing: 0.05em;
         border-top: 1px solid rgba(255, 255, 255, 0.06);
     }
 
-    /* EXPANDER HEADER FONT (To hơn bên trong và in đậm) */
+    /* EXPANDER HEADER FONT */
     [data-testid="stExpander"] details summary p,
     [data-testid="stExpander"] summary span,
     .streamlit-expanderHeader p {
@@ -521,52 +583,6 @@ def get_custom_css() -> str:
         font-weight: 700 !important;
         color: #f8fafc !important;
         letter-spacing: -0.01em !important;
-    }
-
-    /* NAV LOGIN PILL BUTTON (Hiện khi chưa đăng nhập) */
-    .nav-login-btn-wrapper {
-        display: inline-flex;
-        align-items: center;
-    }
-
-    .nav-login-pill-btn {
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 0.45rem !important;
-        padding: 0.38rem 1.1rem !important;
-        border-radius: 9999px !important;
-        background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%) !important;
-        color: #0b0f19 !important;
-        font-size: 0.9rem !important;
-        font-weight: 700 !important;
-        text-decoration: none !important;
-        border: none !important;
-        outline: none !important;
-        cursor: pointer !important;
-        transition: all 0.2s ease !important;
-        box-shadow: 0 2px 12px rgba(56, 189, 248, 0.35) !important;
-        letter-spacing: 0.01em !important;
-        white-space: nowrap !important;
-    }
-
-    .nav-login-pill-btn:hover {
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 20px rgba(56, 189, 248, 0.55) !important;
-        background: linear-gradient(135deg, #60c8f5 0%, #a78bfa 100%) !important;
-        color: #0b0f19 !important;
-    }
-
-    /* GOOGLE LOGIN BUTTON: Full width fill the white background container */
-    #google-signin-btn-slot {
-        width: 100% !important;
-        min-width: unset !important;
-        max-width: 100% !important;
-    }
-
-    #corebox-google-btn {
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
     }
     </style>
     """

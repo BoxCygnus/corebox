@@ -58,39 +58,65 @@ def build_pages_app():
   <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.73.1/build/stlite.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
-    body, html {{
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background-color: #0b0f19;
-      color: #f1f5f9;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      overflow-x: hidden;
+    *, *::before, *::after {{ box-sizing: border-box; }}
+    html, body {{
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      background-color: #0b0f19 !important;
+      color: #f1f5f9 !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      overflow-x: hidden !important;
     }}
-    /* HIDE STLITE LOADING TOASTS, REACT TOASTIFY & STREAMLIT STATUS WIDGET */
-    .Toastify__toast-container,
-    .Toastify__toast,
-    .Toastify__toast--default,
-    .Toastify__toast--info,
-    [class*="Toastify"],
-    .stlite-message,
-    header,
-    .stAppHeader,
-    [data-testid="stHeader"],
-    [data-testid="stToolbarActions"],
-    [data-testid="stToolbar"],
-    [data-testid="stDecoration"],
-    #MainMenu,
-    .stDeployButton {{
+    /* HIDE ALL STREAMLIT CHROME */
+    header, .stAppHeader,
+    [data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"], .stStatusWidget, [data-testid="stToolbarActions"],
+    .Toastify__toast-container, .Toastify__toast,
+    .Toastify__toast--default, .Toastify__toast--info,
+    [class*="Toastify"], .stlite-message, #MainMenu, .stDeployButton,
+    div:has(> [data-testid="stStatusWidget"]), div[data-testid="stStatusWidget"] * {{
       display: none !important;
+      height: 0 !important;
+      min-height: 0 !important;
+      max-height: 0 !important;
+      width: 0 !important;
+      padding: 0 !important;
+      margin: 0 !important;
       visibility: hidden !important;
       opacity: 0 !important;
-      height: 0 !important;
-      width: 0 !important;
-      pointer-events: none !important;
       overflow: hidden !important;
+      pointer-events: none !important;
+      border: none !important;
     }}
+    /* FULL FLUSH RESET: Streamlit App root containers */
+    [data-testid="stApp"], .stApp,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMain"], section[data-testid="stMain"],
+    section.main, .main {{
+      margin: 0 !important;
+      padding: 0 !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      max-width: 100vw !important;
+      background-color: #0b0e17 !important;
+      overflow-x: hidden !important;
+    }}
+    /* BLOCK CONTAINER: zero padding all sides */
+    .main .block-container,
+    [data-testid="stMainBlockContainer"],
+    [data-testid="block-container"],
+    div[data-testid="stAppViewBlockContainer"],
+    div[class*="block-container"] {{
+      padding: 0 !important;
+      margin: 0 !important;
+      max-width: 100vw !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }}
+    /* NAVBAR: full-width flush at top, padded inside */
     .corebox-navbar-container {{
       position: sticky !important;
       top: 0 !important;
@@ -100,34 +126,14 @@ def build_pages_app():
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
       padding-top: 0.45rem !important;
       padding-bottom: 0.45rem !important;
-      margin-top: 0 !important;
-      margin-bottom: 1rem !important;
-      width: 100% !important;
-      box-sizing: border-box !important;
-    }}
-    .main .block-container,
-    [data-testid="stMainBlockContainer"],
-    [data-testid="block-container"],
-    div[data-testid="stAppViewBlockContainer"] {{
-      padding-top: 0 !important;
-      padding-left: 0 !important;
-      padding-right: 0 !important;
-      padding-bottom: 0 !important;
-      margin-left: 0 !important;
-      margin-right: 0 !important;
-      max-width: 100vw !important;
-      width: 100% !important;
-      box-sizing: border-box !important;
-    }}
-    .corebox-navbar-container {{
       padding-left: 1.8rem !important;
       padding-right: 1.8rem !important;
-      margin-bottom: 0 !important;
+      margin: 0 !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
     }}
-    .nav-login-btn-wrapper {{
-      display: inline-flex;
-      align-items: center;
-    }}
+    /* NAV LOGIN PILL BUTTON */
+    .nav-login-btn-wrapper {{ display: inline-flex; align-items: center; }}
     .nav-login-pill-btn {{
       display: inline-flex !important;
       align-items: center !important;
@@ -152,12 +158,10 @@ def build_pages_app():
       background: linear-gradient(135deg, #60c8f5 0%, #a78bfa 100%) !important;
       color: #0b0f19 !important;
     }}
+    /* HIDDEN SPA BUTTONS */
     div[data-testid="stHorizontalBlock"]:has([class*="st-key-btn_nav_"]),
-    div[class*="st-key-btn_nav_"],
-    div[class*="st-key-btn_lang_"],
-    div[class*="st-key-btn_act_"],
-    div[class*="st-key-btn_nav_"] button,
-    div[class*="st-key-btn_lang_"] button,
+    div[class*="st-key-btn_nav_"], div[class*="st-key-btn_lang_"], div[class*="st-key-btn_act_"],
+    div[class*="st-key-btn_nav_"] button, div[class*="st-key-btn_lang_"] button,
     div[class*="st-key-btn_act_"] button {{
       position: fixed !important;
       left: -9999px !important;
@@ -171,7 +175,7 @@ def build_pages_app():
       pointer-events: auto !important;
       border: none !important;
     }}
-    /* Google Sign-in button: clean white background with sleek blue border */
+    /* GOOGLE SIGN-IN BUTTON */
     #google-signin-btn-slot {{
       background-color: #ffffff !important;
       border: 2px solid #0ea5e9 !important;
@@ -195,8 +199,7 @@ def build_pages_app():
       border-color: #38bdf8 !important;
       box-shadow: 0 6px 24px rgba(56, 189, 248, 0.42) !important;
     }}
-    #google-signin-btn-slot iframe,
-    .g_id_signin iframe,
+    #google-signin-btn-slot iframe, .g_id_signin iframe,
     iframe[src*="accounts.google.com"] {{
       background: #ffffff !important;
       border: none !important;
