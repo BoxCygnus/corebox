@@ -604,11 +604,70 @@ def build_pages_app():
 </html>
 """
 
+    # Write Stlite bundle as backup (public/stlite.html and root stlite.html)
+    public_stlite = os.path.join(public_dir, "stlite.html")
+    with open(public_stlite, "w", encoding="utf-8") as f:
+        f.write(html_content)
+    root_stlite = os.path.join(base_dir, "stlite.html")
+    with open(root_stlite, "w", encoding="utf-8") as f:
+        f.write(html_content)
+
+    # Server-Side High-Speed Gateway for Cloudflare Pages (instant load under 1 second)
+    server_gateway_html = """<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Corebox — Đơn giản hóa công việc của bạn.</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0b0f19;
+    }
+    #corebox-frame {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      background-color: #0b0f19;
+    }
+  </style>
+</head>
+<body>
+  <iframe
+    id="corebox-frame"
+    src="https://corebox.streamlit.app/?embed=true"
+    allow="camera; microphone; clipboard-read; clipboard-write; geolocation"
+    allowfullscreen>
+  </iframe>
+  <script>
+    const frame = document.getElementById("corebox-frame");
+    function syncUrl() {
+      const q = window.location.search;
+      const base = "https://corebox.streamlit.app/";
+      if (q && q.length > 1) {
+        const sep = q.includes("?") ? "&" : "?";
+        frame.src = base + q + sep + "embed=true";
+      }
+    }
+    syncUrl();
+  </script>
+</body>
+</html>
+"""
+
     # Write to public/index.html (for Cloudflare Pages with build output 'public')
     public_index = os.path.join(public_dir, "index.html")
     with open(public_index, "w", encoding="utf-8") as f:
-        f.write(html_content)
-    print(f"Generated Cloudflare Pages package: {public_index}")
+        f.write(server_gateway_html)
+    print(f"Generated Cloudflare Pages Server-Side Gateway: {public_index}")
 
     # Also copy _worker.js and _routes.json to public/ if present
     import shutil
@@ -619,10 +678,10 @@ def build_pages_app():
             shutil.copy2(src, dst)
             print(f"Copied {fn} to {public_dir}")
 
-    # Also write to root index.html (in case user configures Pages with root directory)
+    # Also write to root index.html
     root_index = os.path.join(base_dir, "index.html")
     with open(root_index, "w", encoding="utf-8") as f:
-        f.write(html_content)
+        f.write(server_gateway_html)
     print(f"Generated root index.html: {root_index}")
 
 if __name__ == "__main__":
