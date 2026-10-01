@@ -96,10 +96,7 @@ def build_pages_app():
     [data-testid="stMain"], section[data-testid="stMain"],
     section.main, .main {{
       margin: 0 !important;
-      padding-top: 56px !important;
-      padding-left: 0 !important;
-      padding-right: 0 !important;
-      padding-bottom: 0 !important;
+      padding: 0 !important;
       top: 0 !important;
       left: 0 !important;
       width: 100% !important;
@@ -119,12 +116,10 @@ def build_pages_app():
       width: 100% !important;
       box-sizing: border-box !important;
     }}
-    /* NAVBAR: FIXED to very top of browser — vượt qua mọi Streamlit container padding */
+    /* NAVBAR: sticky inside iframe — JS removes outer gap */
     .corebox-navbar-container {{
-      position: fixed !important;
+      position: sticky !important;
       top: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
       z-index: 999999 !important;
       background-color: #0b0e17 !important;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
@@ -134,7 +129,7 @@ def build_pages_app():
       padding-left: 1.8rem !important;
       padding-right: 1.8rem !important;
       margin: 0 !important;
-      width: 100vw !important;
+      width: 100% !important;
       box-sizing: border-box !important;
     }}
     /* NAV LOGIN PILL BUTTON */
@@ -279,6 +274,49 @@ def build_pages_app():
 
   <script>
     const bundledFiles = {files_json};
+
+    // ================================================================
+    // NAVBAR GAP REMOVAL — Runs every 150ms to strip Streamlit's top
+    // padding from the outer DOM so navbar iframe sits flush at top.
+    // position:fixed inside st.html() iframe collapses the iframe,
+    // so we must use sticky inside + remove outer gap via JS.
+    // ================================================================
+    (function coreboxGapFix() {{
+      var SELECTORS = [
+        '.stApp', '[data-testid="stApp"]',
+        '[data-testid="stAppViewContainer"]',
+        '[data-testid="stMain"]', 'section[data-testid="stMain"]',
+        '[data-testid="stMainBlockContainer"]',
+        '[data-testid="block-container"]',
+        'div[data-testid="stAppViewBlockContainer"]',
+        'div[class*="block-container"]',
+        '[data-testid="stVerticalBlock"]'
+      ];
+      var applied = false;
+      var attempts = 0;
+      var iv = setInterval(function() {{
+        attempts++;
+        var changed = false;
+        SELECTORS.forEach(function(sel) {{
+          document.querySelectorAll(sel).forEach(function(el) {{
+            if (el.style.paddingTop !== '0px' || el.style.marginTop !== '0px') {{
+              el.style.setProperty('padding-top', '0', 'important');
+              el.style.setProperty('margin-top', '0', 'important');
+              changed = true;
+            }}
+          }});
+        }});
+        // Also remove any gap on the first child of the main block
+        var mb = document.querySelector('[data-testid="stMainBlockContainer"]');
+        if (mb && mb.firstElementChild) {{
+          mb.firstElementChild.style.setProperty('padding-top', '0', 'important');
+          mb.firstElementChild.style.setProperty('margin-top', '0', 'important');
+        }}
+        if (!changed && applied) clearInterval(iv);
+        if (changed) applied = true;
+        if (attempts > 100) clearInterval(iv); // stop after 15s
+      }}, 150);
+    }})();
 
     // Instant Google OAuth 2.0 Hash / Query Token Detection (Zero Reload)
     (function() {{
