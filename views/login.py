@@ -17,8 +17,16 @@ def render_login_view(lang: str):
     - Left Column: Bold Corebox branding, subtitle, mascots, footer.
     - Right Column: 'Welcome back', official Google Identity Services OAuth button, security notice, terms.
     """
+    btn_back_text = t("login_btn_back", lang)
+    subtitle_text = t("login_brand_subtitle", lang)
+    desc_text = t("login_brand_desc", lang)
+    footnote_text = t("login_footnote", lang)
+    welcome_text = "Chào mừng bạn đến với" if lang == "vi" else "Welcome to"
+    terms_text = t("login_terms_privacy", lang)
+    client_id = config.GOOGLE_CLIENT_ID
+
     # Top Bar with Back Button
-    safe_html(f"""
+    top_html = """
     <div style="margin-bottom: 2rem; padding: 0.5rem 0;">
       <a href="?page=home&lang={lang}" onclick="return window.coreboxNav('home', '{lang}', event)" target="_self" class="login-back-btn" style="
         display: inline-flex;
@@ -34,16 +42,17 @@ def render_login_view(lang: str):
         border: 1px solid rgba(255, 255, 255, 0.08);
         transition: all 0.2s ease;
       ">
-        {t('login_btn_back', lang)}
+        {btn_back_text}
       </a>
     </div>
-    """)
+    """.format(lang=lang, btn_back_text=btn_back_text)
+    safe_html(top_html)
 
     col_left, col_space, col_right = st.columns([1.1, 0.15, 1.0])
 
     with col_left:
         # Left branding block styled like MapleTools reference in Image 1
-        safe_html(f"""
+        left_html = """
         <div style="padding-top: 2rem; padding-right: 1.5rem;">
           <div class="hero-brand-name" style="
             font-size: 3.8rem;
@@ -61,7 +70,7 @@ def render_login_view(lang: str):
             margin-bottom: 1.5rem;
             max-width: 520px;
           ">
-            {t('login_brand_subtitle', lang)}
+            {subtitle_text}
           </div>
           <div style="
             font-size: 0.95rem;
@@ -70,17 +79,30 @@ def render_login_view(lang: str):
             margin-bottom: 3rem;
             max-width: 500px;
           ">
-            {t('login_brand_desc', lang)}
+            {desc_text}
           </div>
 
           <div style="font-size: 0.85rem; color: #64748b; line-height: 1.6; max-width: 480px;">
-            {t('login_footnote', lang)}
+            {footnote_text}
           </div>
         </div>
-        """)
+        """.format(subtitle_text=subtitle_text, desc_text=desc_text, footnote_text=footnote_text)
+        safe_html(left_html)
 
     with col_right:
-        safe_html(f"""
+        script_part = """
+          <script src="https://accounts.google.com/gsi/client" async defer></script>
+          <script>
+            window.handleGoogleCredentialResponse = window.handleGoogleCredentialResponse || function(response) {
+              if (!response || !response.credential) return;
+              var url = new URL(window.location);
+              url.searchParams.set("g_token", response.credential);
+              url.searchParams.set("page", "home");
+              window.location.href = url.toString();
+            };
+          </script>
+        """
+        right_html = """
         <div style="
           padding-top: 4rem;
           max-width: 440px;
@@ -99,7 +121,7 @@ def render_login_view(lang: str):
             margin-bottom: 0.35rem;
             text-align: center;
           ">
-            {"Chào mừng bạn đến với" if lang == "vi" else "Welcome to"}
+            {welcome_text}
           </div>
           <div style="
             font-size: 2.75rem;
@@ -116,18 +138,9 @@ def render_login_view(lang: str):
           </div>
 
           <!-- Official Google Identity Services Container -->
-          <script src="https://accounts.google.com/gsi/client" async defer></script>
-          <script>
-            window.handleGoogleCredentialResponse = window.handleGoogleCredentialResponse || function(response) {{
-              if (!response || !response.credential) return;
-              const url = new URL(window.location);
-              url.searchParams.set("g_token", response.credential);
-              url.searchParams.set("page", "home");
-              window.location.href = url.toString();
-            }};
-          </script>
+          {script_part}
           <div id="g_id_onload"
-               data-client_id="{config.GOOGLE_CLIENT_ID}"
+               data-client_id="{client_id}"
                data-context="signin"
                data-ux_mode="popup"
                data-callback="handleGoogleCredentialResponse"
@@ -178,7 +191,14 @@ def render_login_view(lang: str):
             text-align: center;
             max-width: 380px;
           ">
-            {t('login_terms_privacy', lang)}
+            {terms_text}
           </div>
         </div>
-        """)
+        """.format(
+            welcome_text=welcome_text,
+            script_part=script_part,
+            client_id=client_id,
+            lang=lang,
+            terms_text=terms_text
+        )
+        safe_html(right_html)
