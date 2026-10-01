@@ -96,7 +96,10 @@ def build_pages_app():
     [data-testid="stMain"], section[data-testid="stMain"],
     section.main, .main {{
       margin: 0 !important;
-      padding: 0 !important;
+      padding-top: 56px !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      padding-bottom: 0 !important;
       top: 0 !important;
       left: 0 !important;
       width: 100% !important;
@@ -116,20 +119,22 @@ def build_pages_app():
       width: 100% !important;
       box-sizing: border-box !important;
     }}
-    /* NAVBAR: full-width flush at top, padded inside */
+    /* NAVBAR: FIXED to very top of browser — vượt qua mọi Streamlit container padding */
     .corebox-navbar-container {{
-      position: sticky !important;
+      position: fixed !important;
       top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
       z-index: 999999 !important;
       background-color: #0b0e17 !important;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
-      padding-top: 0.45rem !important;
-      padding-bottom: 0.45rem !important;
+      padding-top: 0.5rem !important;
+      padding-bottom: 0.5rem !important;
       padding-left: 1.8rem !important;
       padding-right: 1.8rem !important;
       margin: 0 !important;
-      width: 100% !important;
+      width: 100vw !important;
       box-sizing: border-box !important;
     }}
     /* NAV LOGIN PILL BUTTON */

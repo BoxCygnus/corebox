@@ -176,22 +176,36 @@ def get_custom_css() -> str:
     }
 
     /* ================================================================ */
-    /* CUSTOM TOP NAVBAR — Flush sát viền trình duyệt, sticky           */
+    /* CUSTOM TOP NAVBAR — FIXED: gắn cứng vào đỉnh trình duyệt        */
+    /* sticky không đủ mạnh vì bị kẹt trong Streamlit container padding */
     /* ================================================================ */
     .corebox-navbar-container {
-        position: sticky !important;
+        position: fixed !important;
         top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
         z-index: 999999 !important;
         background-color: #0b0e17 !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
-        padding-top: 0.45rem !important;
-        padding-bottom: 0.45rem !important;
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
         padding-left: 1.8rem !important;
         padding-right: 1.8rem !important;
         margin: 0 !important;
-        width: 100% !important;
+        width: 100vw !important;
         box-sizing: border-box !important;
+    }
+
+    /* Đẩy toàn bộ content xuống để không bị navbar fixed che khuất */
+    [data-testid="stApp"],
+    .stApp,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMain"],
+    section[data-testid="stMain"],
+    section.main,
+    .main {
+        padding-top: 56px !important;
     }
 
     .nav-bar-row {
