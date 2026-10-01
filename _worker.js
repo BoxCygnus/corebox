@@ -12,6 +12,7 @@ export default {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
+        "Cache-Control": "no-store, no-cache, must-revalidate",
       };
 
       if (request.method === "OPTIONS") {
@@ -108,6 +109,7 @@ export default {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
+        "Cache-Control": "no-store, no-cache, must-revalidate",
       };
 
       if (request.method === "OPTIONS") {
@@ -142,7 +144,18 @@ export default {
       }
     }
 
-    // Fallback: serve static assets (index.html, icons, etc.)
-    return env.ASSETS.fetch(request);
+    // Fallback: serve static assets with Cloudflare edge caching
+    const res = await env.ASSETS.fetch(request);
+    const newHeaders = new Headers(res.headers);
+    if (url.pathname === "/" || url.pathname.endsWith(".html")) {
+      newHeaders.set("Cache-Control", "public, max-age=0, must-revalidate");
+    } else if (/\.(js|css|woff2|woff|ttf|png|jpg|jpeg|svg|webp|wasm|whl|json)$/i.test(url.pathname)) {
+      newHeaders.set("Cache-Control", "public, max-age=31536000, immutable");
+    }
+    return new Response(res.body, {
+      status: res.status,
+      statusText: res.statusText,
+      headers: newHeaders,
+    });
   }
 };
