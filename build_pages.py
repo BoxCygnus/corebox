@@ -227,6 +227,70 @@ def build_pages_app():
   <script>
     const bundledFiles = {files_json};
 
+    // Instant Google OAuth 2.0 Hash / Query Token Detection (Zero Reload)
+    (function() {{
+      try {{
+        let tok = null;
+        let hash = window.location.hash;
+        if (hash && (hash.includes("id_token=") || hash.includes("access_token="))) {{
+          if (hash.startsWith("#")) hash = hash.substring(1);
+          const params = new URLSearchParams(hash);
+          tok = params.get("id_token");
+        }}
+        if (!tok) {{
+          const urlParams = new URLSearchParams(window.location.search);
+          tok = urlParams.get("g_token") || urlParams.get("id_token");
+        }}
+        if (tok) {{
+          const parts = tok.split('.');
+          if (parts.length === 3) {{
+            const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const jsonStr = decodeURIComponent(atob(b64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+            const payload = JSON.parse(jsonStr);
+            const email = (payload.email || '').toLowerCase().trim();
+            const name = payload.name || email.split('@')[0];
+            if (email) {{
+              const isAdmin = (email === "happyclone96@gmail.com");
+              const userObj = {{ email: email, name: name }};
+              localStorage.setItem("corebox_active_user", JSON.stringify(userObj));
+              
+              let uStore = JSON.parse(localStorage.getItem("corebox_users_store") || "{{}}");
+              if (!uStore[email]) {{
+                uStore[email] = {{
+                  email: email,
+                  full_name: name || email.split('@')[0],
+                  role: isAdmin ? "admin" : "user",
+                  status: isAdmin ? "active" : "pending",
+                  created_at: new Date().toISOString().replace("T", " ").substring(0, 19),
+                  updated_at: new Date().toISOString().replace("T", " ").substring(0, 19)
+                }};
+              }} else {{
+                if (name) uStore[email].full_name = name;
+              }}
+              localStorage.setItem("corebox_users_store", JSON.stringify(uStore));
+              
+              // Async sync to Cloudflare KV
+              fetch("/api/users", {{
+                method: "POST",
+                headers: {{ "Content-Type": "application/json" }},
+                body: JSON.stringify({{ email: email, full_name: name, role: isAdmin ? "admin" : "user", status: isAdmin ? "active" : "pending" }})
+              }}).catch(e => console.error("KV sync error:", e));
+
+              // Clean URL without reloading
+              const cleanUrl = new URL(window.location.href);
+              cleanUrl.hash = "";
+              cleanUrl.searchParams.delete("g_token");
+              cleanUrl.searchParams.delete("id_token");
+              cleanUrl.searchParams.set("page", "home");
+              window.history.replaceState(null, "", cleanUrl.toString());
+            }}
+          }}
+        }}
+      }} catch (e) {{
+        console.error("Instant OAuth token parse error:", e);
+      }}
+    }})();
+
     function findBtn(name) {{
       const keyElem = document.querySelector('.st-key-btn_' + name);
       if (keyElem) {{
@@ -472,7 +536,7 @@ def build_pages_app():
           const target = document.getElementById("google-signin-btn-slot");
           if (target && target.getAttribute("data-rendered-locale") !== gsiLocale) {{
             target.innerHTML = "";
-            const btnWidth = Math.min(400, Math.max(280, Math.floor(window.innerWidth - 48)));
+            const btnWidth = Math.min(360, Math.max(280, Math.floor(window.innerWidth - 48)));
             window.google.accounts.id.renderButton(target, {{
               theme: "outline",
               size: "large",
@@ -484,6 +548,13 @@ def build_pages_app():
             }});
             target.setAttribute("data-rendered-locale", gsiLocale);
           }}
+          // Also show Google One Tap prompt if not logged in
+          try {{
+            const activeUser = localStorage.getItem("corebox_active_user");
+            if (!activeUser) {{
+              window.google.accounts.id.prompt();
+            }}
+          }} catch(e) {{}}
         }}
       }} catch (e) {{
         console.error("Google Identity Services error:", e);

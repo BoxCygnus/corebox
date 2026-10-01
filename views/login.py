@@ -126,7 +126,7 @@ def render_login_view(lang: str):
             Corebox
           </div>
 
-          <!-- Official Google OAuth 2.0 Web Flow Button (Never blocked by iframes) -->
+          <!-- Official Google OAuth 2.0 Web Flow Button & GSI Slot -->
           <div style="
             margin: 1.2rem 0 1.8rem 0;
             display: flex;
@@ -135,39 +135,41 @@ def render_login_view(lang: str):
             justify-content: center;
             width: 100%;
           ">
-            <button type="button"
-                    id="corebox-google-btn"
-                    onclick="triggerGoogleOAuth()"
-                    style="
-                      display: inline-flex;
-                      align-items: center;
-                      justify-content: center;
-                      gap: 12px;
-                      width: 360px;
-                      max-width: 100%;
-                      height: 48px;
-                      padding: 0 20px;
-                      border-radius: 9999px;
-                      background-color: #ffffff;
-                      border: 2px solid #0ea5e9;
-                      box-shadow: 0 4px 18px rgba(14, 165, 233, 0.28);
-                      color: #1e293b;
-                      font-size: 15px;
-                      font-weight: 600;
-                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                      cursor: pointer;
-                      transition: all 0.2s ease;
-                      outline: none;
-                      user-select: none;
-                    ">
-              <svg width="20" height="20" viewBox="0 0 24 24" style="flex-shrink: 0;">
-                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
-                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.13C3.26 21.36 7.33 24 12 24z"/>
-                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.6H1.26C.46 8.22 0 10.05 0 12s.46 3.78 1.26 5.4l4.02-3.13z"/>
-                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.6l4.02 3.13c.95-2.83 3.6-4.98 6.72-4.98z"/>
-              </svg>
-              <span>__BTN_LABEL__</span>
-            </button>
+            <div id="google-signin-btn-slot" style="min-height: 48px; display: flex; justify-content: center; align-items: center; width: 100%;">
+              <button type="button"
+                      id="corebox-google-btn"
+                      onclick="triggerGoogleOAuth()"
+                      style="
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 12px;
+                        width: 320px;
+                        max-width: 100%;
+                        height: 48px;
+                        padding: 0 20px;
+                        border-radius: 9999px;
+                        background-color: #ffffff;
+                        border: 2px solid #0ea5e9;
+                        box-shadow: 0 4px 18px rgba(14, 165, 233, 0.28);
+                        color: #1e293b;
+                        font-size: 15px;
+                        font-weight: 600;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        outline: none;
+                        user-select: none;
+                      ">
+                <svg width="20" height="20" viewBox="0 0 24 24" style="flex-shrink: 0;">
+                  <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
+                  <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.13C3.26 21.36 7.33 24 12 24z"/>
+                  <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.6H1.26C.46 8.22 0 10.05 0 12s.46 3.78 1.26 5.4l4.02-3.13z"/>
+                  <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.6l4.02 3.13c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                </svg>
+                <span>__BTN_LABEL__</span>
+              </button>
+            </div>
           </div>
 
           <!-- Terms & Privacy Policy footer notice with Google policy links -->
@@ -188,15 +190,8 @@ def render_login_view(lang: str):
         <script>
           function triggerGoogleOAuth() {
             var clientId = "__CLIENT_ID__";
-            var topHost = window.location.hostname;
-            try {
-              if (window.top && window.top.location && window.top.location.hostname) {
-                topHost = window.top.location.hostname;
-              }
-            } catch(e) {}
-
-            var isPagesDev = topHost.includes("pages.dev");
-            var redirectUri = isPagesDev ? "https://corebox-project.pages.dev" : "https://corebox.streamlit.app";
+            var origin = window.location.origin || "https://corebox-project.pages.dev";
+            var redirectUri = origin.includes("pages.dev") ? origin : "https://corebox-project.pages.dev";
             var nonce = Math.random().toString(36).substring(2);
             var oauthUrl = "https://accounts.google.com/o/oauth2/v2/auth"
               + "?client_id=" + encodeURIComponent(clientId)
