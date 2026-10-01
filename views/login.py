@@ -116,6 +116,16 @@ def render_login_view(lang: str):
           </div>
 
           <!-- Official Google Identity Services Container -->
+          <script src="https://accounts.google.com/gsi/client" async defer></script>
+          <script>
+            window.handleGoogleCredentialResponse = window.handleGoogleCredentialResponse || function(response) {
+              if (!response || !response.credential) return;
+              const url = new URL(window.location);
+              url.searchParams.set("g_token", response.credential);
+              url.searchParams.set("page", "home");
+              window.location.href = url.toString();
+            };
+          </script>
           <div id="g_id_onload"
                data-client_id="{config.GOOGLE_CLIENT_ID}"
                data-context="signin"
