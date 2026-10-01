@@ -107,10 +107,22 @@ def build_pages_app():
     }}
     .main .block-container,
     [data-testid="stMainBlockContainer"],
-    [data-testid="block-container"] {{
+    [data-testid="block-container"],
+    div[data-testid="stAppViewBlockContainer"] {{
       padding-top: 0 !important;
-      padding-left: 2cm !important;
-      padding-right: 2cm !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      padding-bottom: 0 !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+      max-width: 100vw !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }}
+    .corebox-navbar-container {{
+      padding-left: 1.8rem !important;
+      padding-right: 1.8rem !important;
+      margin-bottom: 0 !important;
     }}
     .nav-login-btn-wrapper {{
       display: inline-flex;

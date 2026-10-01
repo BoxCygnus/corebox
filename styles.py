@@ -120,20 +120,20 @@ def get_custom_css() -> str:
         margin-top: 0 !important;
     }
 
-    /* 2CM MARGIN LEFT & RIGHT AT 100% DISPLAY (FLUSH AT TOP) */
+    /* FULL-WIDTH LAYOUT: Xóa mọi padding/margin/max-width giới hạn chiều rộng */
     .main, 
     .main .block-container, 
     [data-testid="stMainBlockContainer"], 
     [data-testid="block-container"],
     div[data-testid="stAppViewBlockContainer"] {
         padding-top: 0 !important;
-        padding-left: 2cm !important;
-        padding-right: 2cm !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
         padding-bottom: 0 !important;
         margin-top: 0 !important;
         margin-left: 0 !important;
         margin-right: 0 !important;
-        max-width: 100% !important;
+        max-width: 100vw !important;
         width: 100% !important;
         box-sizing: border-box !important;
     }
@@ -150,8 +150,10 @@ def get_custom_css() -> str:
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
         padding-top: 0.45rem !important;
         padding-bottom: 0.45rem !important;
+        padding-left: 1.8rem !important;
+        padding-right: 1.8rem !important;
         margin-top: 0 !important;
-        margin-bottom: 1rem !important;
+        margin-bottom: 0 !important;
         width: 100% !important;
         box-sizing: border-box !important;
     }
