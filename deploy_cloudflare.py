@@ -54,6 +54,9 @@ def deploy():
     
     for root, _, files in os.walk(PUBLIC_DIR):
         for f in files:
+            # Special Pages files (_worker.js, _routes.json) are attached directly to deployment request
+            if f in ("_worker.js", "_routes.json"):
+                continue
             full_path = os.path.join(root, f)
             rel_path = "/" + os.path.relpath(full_path, PUBLIC_DIR).replace("\\", "/")
             with open(full_path, "rb") as fp:
@@ -73,7 +76,7 @@ def deploy():
                 "rel_path": rel_path
             }
 
-    print(f"Found {len(manifest)} asset(s) to deploy.")
+    print(f"Found {len(manifest)} static asset(s) to deploy.")
 
     # 2. Get Upload Token (JWT)
     auth_headers = {"Authorization": f"Bearer {API_TOKEN}"}
@@ -129,6 +132,18 @@ def deploy():
     files = {
         "manifest": (None, json.dumps(manifest), "application/json")
     }
+
+    worker_path = os.path.join(PUBLIC_DIR, "_worker.js")
+    if os.path.exists(worker_path):
+        with open(worker_path, "rb") as wf:
+            files["_worker.js"] = ("_worker.js", wf.read(), "application/javascript")
+            print("Attached _worker.js to deployment.")
+
+    routes_path = os.path.join(PUBLIC_DIR, "_routes.json")
+    if os.path.exists(routes_path):
+        with open(routes_path, "rb") as rf:
+            files["_routes.json"] = ("_routes.json", rf.read(), "application/json")
+            print("Attached _routes.json to deployment.")
     
     res = requests.post(deploy_url, headers=auth_headers, data=form_data, files=files)
     if res.status_code != 200 or not res.json().get("success"):
