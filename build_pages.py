@@ -625,15 +625,16 @@ def build_pages_app():
     html, body {
       width: 100%;
       height: 100%;
-      overflow: hidden;
+      overflow: hidden !important;
       background-color: #0b0f19;
     }
     #corebox-frame {
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
       width: 100%;
-      height: 100%;
+      height: calc(100vh + 48px);
+      margin-bottom: -48px;
       border: none;
       display: block;
       background-color: #0b0f19;

@@ -1,5 +1,6 @@
 import textwrap
 import streamlit as st
+import streamlit.components.v1 as components
 import config
 from i18n import t
 
@@ -90,19 +91,7 @@ def render_login_view(lang: str):
         safe_html(left_html)
 
     with col_right:
-        script_part = """
-          <script src="https://accounts.google.com/gsi/client" async defer></script>
-          <script>
-            window.handleGoogleCredentialResponse = window.handleGoogleCredentialResponse || function(response) {
-              if (!response || !response.credential) return;
-              var url = new URL(window.location);
-              url.searchParams.set("g_token", response.credential);
-              url.searchParams.set("page", "home");
-              window.location.href = url.toString();
-            };
-          </script>
-        """
-        right_html = """
+        top_right_html = """
         <div style="
           padding-top: 4rem;
           max-width: 440px;
@@ -131,74 +120,110 @@ def render_login_view(lang: str):
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-shadow: 0 0 35px rgba(56, 189, 248, 0.4);
-            margin-bottom: 2rem;
+            margin-bottom: 1.8rem;
             text-align: center;
           ">
             Corebox
           </div>
+        </div>
+        """.format(welcome_text=welcome_text)
+        safe_html(top_right_html)
 
-          <!-- Official Google Identity Services Container -->
-          {script_part}
+        # Standalone components.html guarantees reliable execution of Google Identity Services
+        button_html = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <script src="https://accounts.google.com/gsi/client" async defer></script>
+          <style>
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{
+              background: transparent;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              overflow: hidden;
+              width: 100%;
+              min-height: 52px;
+            }}
+            .btn-wrapper {{
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              padding: 2px;
+              border-radius: 9999px;
+              background-color: #ffffff;
+              border: 2px solid #0ea5e9;
+              box-shadow: 0 4px 18px rgba(14, 165, 233, 0.28);
+              transition: all 0.2s ease;
+            }}
+            .btn-wrapper:hover {{
+              border-color: #38bdf8;
+              box-shadow: 0 6px 24px rgba(56, 189, 248, 0.45);
+            }}
+          </style>
+        </head>
+        <body>
           <div id="g_id_onload"
                data-client_id="{client_id}"
                data-context="signin"
                data-ux_mode="popup"
-               data-callback="handleGoogleCredentialResponse"
+               data-callback="onGoogleAuth"
                data-auto_prompt="false"
                data-locale="{lang}">
           </div>
-          
-          <div class="google-btn-wrapper" style="
-            margin: 1.5rem 0 2.2rem 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-          ">
-            <div id="google-signin-btn-slot"
-                 class="g_id_signin"
+          <div class="btn-wrapper">
+            <div class="g_id_signin"
                  data-type="standard"
                  data-shape="pill"
                  data-theme="outline"
                  data-text="continue_with"
                  data-size="large"
                  data-logo_alignment="left"
-                 data-width="400"
-                 style="
-                   min-width: 320px;
-                   max-width: 100%;
-                   display: inline-flex;
-                   justify-content: center;
-                   align-items: center;
-                   border-radius: 9999px;
-                   background-color: #ffffff;
-                   border: 2px solid #0ea5e9;
-                   box-shadow: 0 4px 18px rgba(14, 165, 233, 0.25);
-                   overflow: hidden;
-                   transition: all 0.2s ease;
-                   box-sizing: border-box;
-                 ">
+                 data-width="360">
             </div>
           </div>
+          <script>
+            function onGoogleAuth(response) {{
+              if (!response || !response.credential) return;
+              var token = encodeURIComponent(response.credential);
+              try {{
+                if (window.top && window.top.location && window.top.location.href.includes("pages.dev")) {{
+                  var topUrl = new URL(window.top.location.href);
+                  topUrl.searchParams.set("g_token", response.credential);
+                  topUrl.searchParams.set("page", "home");
+                  window.top.location.href = topUrl.toString();
+                  return;
+                }}
+              }} catch(e) {{}}
+              try {{
+                var pUrl = new URL(window.parent.location.href);
+                pUrl.searchParams.set("g_token", response.credential);
+                pUrl.searchParams.set("page", "home");
+                window.parent.location.href = pUrl.toString();
+              }} catch(e) {{
+                window.location.href = "?g_token=" + token + "&page=home";
+              }}
+            }}
+          </script>
+        </body>
+        </html>
+        """.format(client_id=client_id, lang=lang)
+        components.html(button_html, height=65)
 
-          <!-- Terms & Privacy Policy footer notice with Google policy links -->
-          <div style="
-            margin-top: 1.2rem;
-            font-size: 0.85rem;
-            color: #94a3b8;
-            line-height: 1.6;
-            text-align: center;
-            max-width: 380px;
-          ">
-            {terms_text}
-          </div>
+        bottom_right_html = """
+        <div style="
+          margin-top: 0.8rem;
+          font-size: 0.85rem;
+          color: #94a3b8;
+          line-height: 1.6;
+          text-align: center;
+          max-width: 440px;
+          margin-left: auto;
+          margin-right: auto;
+        ">
+          {terms_text}
         </div>
-        """.format(
-            welcome_text=welcome_text,
-            script_part=script_part,
-            client_id=client_id,
-            lang=lang,
-            terms_text=terms_text
-        )
-        safe_html(right_html)
+        """.format(terms_text=terms_text)
+        safe_html(bottom_right_html)
