@@ -112,6 +112,34 @@ def build_pages_app():
       padding-left: 2cm !important;
       padding-right: 2cm !important;
     }}
+    .nav-login-btn-wrapper {{
+      display: inline-flex;
+      align-items: center;
+    }}
+    .nav-login-pill-btn {{
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 0.45rem !important;
+      padding: 0.38rem 1.1rem !important;
+      border-radius: 9999px !important;
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%) !important;
+      color: #0b0f19 !important;
+      font-size: 0.9rem !important;
+      font-weight: 700 !important;
+      text-decoration: none !important;
+      border: none !important;
+      outline: none !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+      box-shadow: 0 2px 12px rgba(56, 189, 248, 0.35) !important;
+      white-space: nowrap !important;
+    }}
+    .nav-login-pill-btn:hover {{
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 20px rgba(56, 189, 248, 0.55) !important;
+      background: linear-gradient(135deg, #60c8f5 0%, #a78bfa 100%) !important;
+      color: #0b0f19 !important;
+    }}
     div[data-testid="stHorizontalBlock"]:has([class*="st-key-btn_nav_"]),
     div[class*="st-key-btn_nav_"],
     div[class*="st-key-btn_lang_"],
@@ -143,8 +171,13 @@ def build_pages_app():
       overflow: hidden !important;
       transition: all 0.2s ease !important;
       box-sizing: border-box !important;
-      min-width: 320px !important;
+      width: 100% !important;
       max-width: 100% !important;
+    }}
+    #corebox-google-btn {{
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
     }}
     #google-signin-btn-slot:hover {{
       border-color: #38bdf8 !important;

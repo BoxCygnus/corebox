@@ -135,7 +135,7 @@ def render_login_view(lang: str):
             justify-content: center;
             width: 100%;
           ">
-            <div id="google-signin-btn-slot" style="min-height: 48px; display: flex; justify-content: center; align-items: center; width: 100%;">
+            <div id="google-signin-btn-slot" style="min-height: 52px; display: flex; justify-content: center; align-items: center; width: 100%; padding: 4px 0;">
               <button type="button"
                       id="corebox-google-btn"
                       onclick="triggerGoogleOAuth()"
@@ -144,10 +144,9 @@ def render_login_view(lang: str):
                         align-items: center;
                         justify-content: center;
                         gap: 12px;
-                        width: 320px;
-                        max-width: 100%;
-                        height: 48px;
-                        padding: 0 20px;
+                        width: 100%;
+                        height: 52px;
+                        padding: 0 24px;
                         border-radius: 9999px;
                         background-color: #ffffff;
                         border: 2px solid #0ea5e9;
@@ -160,6 +159,7 @@ def render_login_view(lang: str):
                         transition: all 0.2s ease;
                         outline: none;
                         user-select: none;
+                        box-sizing: border-box;
                       ">
                 <svg width="20" height="20" viewBox="0 0 24 24" style="flex-shrink: 0;">
                   <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>

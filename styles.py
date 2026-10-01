@@ -520,5 +520,51 @@ def get_custom_css() -> str:
         color: #f8fafc !important;
         letter-spacing: -0.01em !important;
     }
+
+    /* NAV LOGIN PILL BUTTON (Hiện khi chưa đăng nhập) */
+    .nav-login-btn-wrapper {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .nav-login-pill-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.45rem !important;
+        padding: 0.38rem 1.1rem !important;
+        border-radius: 9999px !important;
+        background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%) !important;
+        color: #0b0f19 !important;
+        font-size: 0.9rem !important;
+        font-weight: 700 !important;
+        text-decoration: none !important;
+        border: none !important;
+        outline: none !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 2px 12px rgba(56, 189, 248, 0.35) !important;
+        letter-spacing: 0.01em !important;
+        white-space: nowrap !important;
+    }
+
+    .nav-login-pill-btn:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 20px rgba(56, 189, 248, 0.55) !important;
+        background: linear-gradient(135deg, #60c8f5 0%, #a78bfa 100%) !important;
+        color: #0b0f19 !important;
+    }
+
+    /* GOOGLE LOGIN BUTTON: Full width fill the white background container */
+    #google-signin-btn-slot {
+        width: 100% !important;
+        min-width: unset !important;
+        max-width: 100% !important;
+    }
+
+    #corebox-google-btn {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
     </style>
     """

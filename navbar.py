@@ -75,17 +75,13 @@ def render_top_navbar(lang: str, current_page: str = "home"):
         </div>
         """
     else:
-        guest_text = t("nav_guest", lang)
+        login_action_text = t("nav_login_action", lang)
         user_menu_html = f"""
-        <div class="nav-dropdown-item">
-          <span class="nav-dropdown-label" style="display:inline-flex; align-items:center; gap:0.45rem; background:rgba(255,255,255,0.05); padding:0.35rem 0.8rem; border-radius:9999px; border:1px solid rgba(255,255,255,0.12); cursor:pointer;">
-            <span style="font-weight:600; font-size:0.88rem; color:#f1f5f9;">{guest_text}</span>
-            <span style="width:24px; height:24px; border-radius:50%; background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color:#0b0f19; font-size:0.75rem; display:inline-flex; align-items:center; justify-content:center;">👤</span>
-            <span class="nav-arrow">⌵</span>
-          </span>
-          <div class="nav-dropdown-menu" style="right: 0; left: auto; min-width: 170px;">
-            <a href="?page=login&lang={lang}" onclick="return window.coreboxNav('login', '{lang}', event)" target="_self" class="nav-sub-link" style="color:#38bdf8 !important; font-weight:600;">➔ {t('nav_login_action', lang)}</a>
-          </div>
+        <div class="nav-login-btn-wrapper">
+          <a href="?page=login&lang={lang}" onclick="return window.coreboxNav('login', '{lang}', event)" target="_self" class="nav-login-pill-btn">
+            <span style="font-size:0.9rem;">🔑</span>
+            <span>{login_action_text}</span>
+          </a>
         </div>
         """
 

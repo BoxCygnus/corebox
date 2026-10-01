@@ -146,6 +146,13 @@ def logout_user():
     st.session_state.pop("user_role", None)
     st.session_state.pop("user_status", None)
     st.session_state.pop("user_picture", None)
+    # Delete active_session.json so user is not auto-logged in on next visit
+    try:
+        sess_file = os.path.join(os.path.dirname(__file__), "active_session.json")
+        if os.path.exists(sess_file):
+            os.remove(sess_file)
+    except Exception:
+        pass
     try:
         if "u" in st.query_params:
             del st.query_params["u"]
