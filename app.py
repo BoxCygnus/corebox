@@ -75,12 +75,15 @@ elif q_action == "logout":
     except Exception:
         pass
 
-# Handle Google OAuth 2.0 token callback from Google Identity Services
-g_token = st.query_params.get("g_token")
+# Handle Google OAuth 2.0 token callback from Google Identity Services or OAuth Web Flow
+g_token = st.query_params.get("g_token") or st.query_params.get("id_token")
 if g_token:
     user = verify_and_login_google_token(g_token)
     try:
-        del st.query_params["g_token"]
+        if "g_token" in st.query_params:
+            del st.query_params["g_token"]
+        if "id_token" in st.query_params:
+            del st.query_params["id_token"]
     except Exception:
         pass
     if user:
@@ -92,6 +95,25 @@ if g_token:
             except Exception:
                 pass
         st.rerun()
+
+# Client-side hash token detector for OAuth redirects
+st.html("""
+<script>
+(function() {
+  if (window.location.hash && window.location.hash.includes("id_token=")) {
+    var p = new URLSearchParams(window.location.hash.substring(1));
+    var tok = p.get("id_token");
+    if (tok) {
+      var u = new URL(window.location.href);
+      u.hash = "";
+      u.searchParams.set("g_token", tok);
+      u.searchParams.set("page", "home");
+      window.location.href = u.toString();
+    }
+  }
+})();
+</script>
+""")
 
 lang = st.session_state.get("lang", "vi")
 current_page = st.session_state.get("current_page", "home")

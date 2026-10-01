@@ -650,7 +650,18 @@ def build_pages_app():
   </iframe>
   <script>
     const frame = document.getElementById("corebox-frame");
-    function syncUrl() {
+    function initGateway() {
+      // Check if redirected from Google OAuth with #id_token=...
+      if (window.location.hash && window.location.hash.includes("id_token=")) {
+        const p = new URLSearchParams(window.location.hash.substring(1));
+        const tok = p.get("id_token");
+        if (tok) {
+          frame.src = "https://corebox.streamlit.app/?g_token=" + encodeURIComponent(tok) + "&page=home&embed=true";
+          window.history.replaceState({}, document.title, window.location.pathname + "?page=home");
+          return;
+        }
+      }
+      // Forward normal search query parameters
       const q = window.location.search;
       const base = "https://corebox.streamlit.app/";
       if (q && q.length > 1) {
@@ -658,7 +669,7 @@ def build_pages_app():
         frame.src = base + q + sep + "embed=true";
       }
     }
-    syncUrl();
+    initGateway();
   </script>
 </body>
 </html>

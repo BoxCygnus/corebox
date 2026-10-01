@@ -1,6 +1,5 @@
 import textwrap
 import streamlit as st
-import streamlit.components.v1 as components
 import config
 from i18n import t
 
@@ -16,13 +15,14 @@ def render_login_view(lang: str):
     Renders modern Split-Screen Google Login View (Google Cloud Console OAuth 2.0):
     - Top Left: '← Back' button returning to home.
     - Left Column: Bold Corebox branding, subtitle, mascots, footer.
-    - Right Column: 'Welcome back', official Google Identity Services OAuth button, security notice, terms.
+    - Right Column: 'Welcome to Corebox', official Google OAuth button, security notice, terms.
     """
     btn_back_text = t("login_btn_back", lang)
     subtitle_text = t("login_brand_subtitle", lang)
     desc_text = t("login_brand_desc", lang)
     footnote_text = t("login_footnote", lang)
     welcome_text = "Chào mừng bạn đến với" if lang == "vi" else "Welcome to"
+    btn_label = "Tiếp tục bằng tài khoản Google" if lang == "vi" else "Continue with Google"
     terms_text = t("login_terms_privacy", lang)
     client_id = config.GOOGLE_CLIENT_ID
 
@@ -91,7 +91,7 @@ def render_login_view(lang: str):
         safe_html(left_html)
 
     with col_right:
-        top_right_html = """
+        right_html = """
         <div style="
           padding-top: 4rem;
           max-width: 440px;
@@ -120,110 +120,105 @@ def render_login_view(lang: str):
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-shadow: 0 0 35px rgba(56, 189, 248, 0.4);
-            margin-bottom: 1.8rem;
+            margin-bottom: 2rem;
             text-align: center;
           ">
             Corebox
           </div>
-        </div>
-        """.format(welcome_text=welcome_text)
-        safe_html(top_right_html)
 
-        # Standalone components.html guarantees reliable execution of Google Identity Services
-        button_html = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <script src="https://accounts.google.com/gsi/client" async defer></script>
-          <style>
-            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-            body {{
-              background: transparent;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              overflow: hidden;
-              width: 100%;
-              min-height: 52px;
-            }}
-            .btn-wrapper {{
-              display: inline-flex;
-              align-items: center;
-              justify-content: center;
-              padding: 2px;
-              border-radius: 9999px;
-              background-color: #ffffff;
-              border: 2px solid #0ea5e9;
-              box-shadow: 0 4px 18px rgba(14, 165, 233, 0.28);
-              transition: all 0.2s ease;
-            }}
-            .btn-wrapper:hover {{
-              border-color: #38bdf8;
-              box-shadow: 0 6px 24px rgba(56, 189, 248, 0.45);
-            }}
-          </style>
-        </head>
-        <body>
-          <div id="g_id_onload"
-               data-client_id="{client_id}"
-               data-context="signin"
-               data-ux_mode="popup"
-               data-callback="onGoogleAuth"
-               data-auto_prompt="false"
-               data-locale="{lang}">
+          <!-- Official Google OAuth 2.0 Web Flow Button (Never blocked by iframes) -->
+          <div style="
+            margin: 1.2rem 0 1.8rem 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+          ">
+            <button type="button"
+                    id="corebox-google-btn"
+                    onclick="triggerGoogleOAuth()"
+                    style="
+                      display: inline-flex;
+                      align-items: center;
+                      justify-content: center;
+                      gap: 12px;
+                      width: 360px;
+                      max-width: 100%;
+                      height: 48px;
+                      padding: 0 20px;
+                      border-radius: 9999px;
+                      background-color: #ffffff;
+                      border: 2px solid #0ea5e9;
+                      box-shadow: 0 4px 18px rgba(14, 165, 233, 0.28);
+                      color: #1e293b;
+                      font-size: 15px;
+                      font-weight: 600;
+                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                      cursor: pointer;
+                      transition: all 0.2s ease;
+                      outline: none;
+                      user-select: none;
+                    ">
+              <svg width="20" height="20" viewBox="0 0 24 24" style="flex-shrink: 0;">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.13C3.26 21.36 7.33 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.6H1.26C.46 8.22 0 10.05 0 12s.46 3.78 1.26 5.4l4.02-3.13z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.6l4.02 3.13c.95-2.83 3.6-4.98 6.72-4.98z"/>
+              </svg>
+              <span>{btn_label}</span>
+            </button>
           </div>
-          <div class="btn-wrapper">
-            <div class="g_id_signin"
-                 data-type="standard"
-                 data-shape="pill"
-                 data-theme="outline"
-                 data-text="continue_with"
-                 data-size="large"
-                 data-logo_alignment="left"
-                 data-width="360">
-            </div>
-          </div>
-          <script>
-            function onGoogleAuth(response) {{
-              if (!response || !response.credential) return;
-              var token = encodeURIComponent(response.credential);
-              try {{
-                if (window.top && window.top.location && window.top.location.href.includes("pages.dev")) {{
-                  var topUrl = new URL(window.top.location.href);
-                  topUrl.searchParams.set("g_token", response.credential);
-                  topUrl.searchParams.set("page", "home");
-                  window.top.location.href = topUrl.toString();
-                  return;
-                }}
-              }} catch(e) {{}}
-              try {{
-                var pUrl = new URL(window.parent.location.href);
-                pUrl.searchParams.set("g_token", response.credential);
-                pUrl.searchParams.set("page", "home");
-                window.parent.location.href = pUrl.toString();
-              }} catch(e) {{
-                window.location.href = "?g_token=" + token + "&page=home";
-              }}
-            }}
-          </script>
-        </body>
-        </html>
-        """.format(client_id=client_id, lang=lang)
-        components.html(button_html, height=65)
 
-        bottom_right_html = """
-        <div style="
-          margin-top: 0.8rem;
-          font-size: 0.85rem;
-          color: #94a3b8;
-          line-height: 1.6;
-          text-align: center;
-          max-width: 440px;
-          margin-left: auto;
-          margin-right: auto;
-        ">
-          {terms_text}
+          <!-- Terms & Privacy Policy footer notice with Google policy links -->
+          <div style="
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            line-height: 1.6;
+            text-align: center;
+            max-width: 440px;
+            margin-left: auto;
+            margin-right: auto;
+          ">
+            {terms_text}
+          </div>
         </div>
-        """.format(terms_text=terms_text)
-        safe_html(bottom_right_html)
+
+        <script>
+          function triggerGoogleOAuth() {
+            var clientId = "{client_id}";
+            var topHost = window.location.hostname;
+            try {
+              if (window.top && window.top.location && window.top.location.hostname) {
+                topHost = window.top.location.hostname;
+              }
+            } catch(e) {}
+
+            var isPagesDev = topHost.includes("pages.dev");
+            var redirectUri = isPagesDev ? "https://corebox-project.pages.dev" : "https://corebox.streamlit.app";
+            var nonce = Math.random().toString(36).substring(2);
+            var oauthUrl = "https://accounts.google.com/o/oauth2/v2/auth"
+              + "?client_id=" + encodeURIComponent(clientId)
+              + "&redirect_uri=" + encodeURIComponent(redirectUri)
+              + "&response_type=token%20id_token"
+              + "&scope=" + encodeURIComponent("openid email profile")
+              + "&nonce=" + nonce
+              + "&prompt=select_account";
+
+            try {
+              if (window.top && window.top.location) {
+                window.top.location.href = oauthUrl;
+                return;
+              }
+            } catch(e) {}
+            window.location.href = oauthUrl;
+          }
+        </script>
+        """.format(
+            welcome_text=welcome_text,
+            btn_label=btn_label,
+            terms_text=terms_text,
+            client_id=client_id
+        )
+        safe_html(right_html)
